@@ -1,0 +1,72 @@
+configfile: "config/config.yaml"
+
+import requests
+import logging as log
+import polars as pl
+import spirepy
+
+ITEM_ID = config["item"]
+
+def find_item_type(item_id):
+    study_response = requests.get(f"https://spire.embl.de/spire/api/study/{item_id}")
+    sample_response = requests.get(f"https://spire.embl.de/spire/api/sample/{item_id}")
+
+    if len(study_response.content) > 3:
+        return "study"
+    elif len(sample_response.content) > 3:
+        return "sample"
+    else:
+        raise ValueError(f"Item {item_id} not found")
+
+
+ITEM_TYPE = find_item_type(ITEM_ID)
+
+if ITEM_TYPE == "study":
+    study = spirepy.Study(ITEM_ID)
+    SAMPLES = [s.id for s in study.get_samples()]
+    MAGS = study.get_mags()["genome_id"].to_list()
+elif ITEM_TYPE == "sample":
+    SAMPLES = [ITEM_ID]
+    sample = spirepy.Sample(ITEM_ID)
+    MAGS = sample.get_mags()["genome_id"].to_list()
+else:
+    raise ValueError("Unknown item type")
+
+print("Samples to process:", SAMPLES)
+print("MAGS to process:", MAGS)
+
+rule all:
+    input:
+        expand("results/reconstructions/{mag}.xml", mag=MAGS),
+        expand("results/mags/{mag}.fa.gz", mag=MAGS),
+        expand("results/eggnog/{sample}.tsv", sample=SAMPLES),
+        expand("results/eggnog_splits/{mag}.tsv", mag=MAGS)
+
+rule download_mags:
+    output:
+        "results/mags/{mag}.fa.gz"
+    shell:
+        "wget -O {output} https://spire.embl.de/download_file/{wildcards.mag}"
+
+rule download_eggnog:
+    output:
+        "results/eggnog/{sample}.tsv"
+    shell:
+        "wget -O {output} https://spire.embl.de/download_eggnog/{wildcards.sample}"
+
+rule split_eggnog:
+    input:
+        sample = "results/eggnog/{sample}.tsv"
+    output:
+        directory("results/eggnog_splits"),
+        "results/eggnog_splits/eggnog_splits.done"
+    shell:
+        "python scripts/split_eggnog.py {input.mag} {input.sample} {output}"
+
+rule reconstruct:
+    input:
+        "results/eggnog_splits/{mag}.tsv"
+    output:
+        "results/reconstructions/{mag}.xml"
+    shell:
+        "carve --egg {input} -g M9 --output {output}"
