@@ -16,7 +16,7 @@ def find_item_type(item_id):
     elif len(sample_response.content) > 3:
         return "sample"
     else:
-        raise ValueError(f"Item {item_id} not found")
+        raise ValueError(f"Item {item_id} not found on SPIRE.")
 
 
 ITEM_TYPE = find_item_type(ITEM_ID)
@@ -37,10 +37,12 @@ print("MAGS to process:", MAGS)
 
 rule all:
     input:
+        "results/manifest.csv",
         expand("results/reconstructions/{mag}.xml", mag=MAGS),
-        expand("results/mags/{mag}.fa.gz", mag=MAGS),
-        expand("results/eggnog/{sample}.tsv", sample=SAMPLES),
-        expand("results/eggnog_splits/{mag}.tsv", mag=MAGS)
+        "results/.mags.cleaned",
+        "results/exchanges.csv",
+        "results/growth_rates.csv",
+        "results/interactions.csv"
 
 rule download_mags:
     output:
@@ -48,25 +50,47 @@ rule download_mags:
     shell:
         "wget -O {output} https://spire.embl.de/download_file/{wildcards.mag}"
 
-rule download_eggnog:
+rule generate_sample_manifest:
     output:
-        "results/eggnog/{sample}.tsv"
+        temp("results/manifests/{sample}.csv")
     shell:
-        "wget -O {output} https://spire.embl.de/download_eggnog/{wildcards.sample}"
+        "python scripts/generate_sample_manifest.py {wildcards.sample} {output}"
 
-rule split_eggnog:
+rule combine_manifests:
     input:
-        sample = "results/eggnog/{sample}.tsv"
+        expand("results/manifests/{sample}.csv", sample=SAMPLES)
     output:
-        directory("results/eggnog_splits"),
-        "results/eggnog_splits/eggnog_splits.done"
+        "results/manifest.csv"
     shell:
-        "python scripts/split_eggnog.py {input.mag} {input.sample} {output}"
+        "python scripts/combine_manifests.py {output} {input}"
 
 rule reconstruct:
     input:
-        "results/eggnog_splits/{mag}.tsv"
+        expand("results/mags/{mag}.fa.gz", mag=MAGS)
     output:
         "results/reconstructions/{mag}.xml"
     shell:
-        "carve --egg {input} -g M9 --output {output}"
+        "carve --dna {input} -g M9 --output {output}"
+
+rule cleanup_mags:
+    input:
+        "results/manifest.csv"
+    output:
+        touch("results/.mags.cleaned")
+    run:
+        import os
+        for mag in MAGS:
+            p = f"results/mags/{mag}.fa.gz"
+            if os.path.exists(p):
+                os.remove(p)
+        open(output[0], "w").close()
+
+rule simulate:
+    input:
+        "results/manifest.csv"
+    output:
+        "results/exchanges.csv",
+        "results/growth_rates.csv",
+        "results/interactions.csv"
+    shell:
+        "python scripts/simulate.py {input}"
