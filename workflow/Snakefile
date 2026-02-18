@@ -40,9 +40,13 @@ rule all:
         "results/manifest.csv",
         expand("results/reconstructions/{mag}.xml", mag=MAGS),
         "results/.mags.cleaned",
-        "results/exchanges.csv",
         "results/growth_rates.csv",
-        "results/interactions.csv"
+        "results/exchanges.csv",
+        "results/annotations.csv",
+        "results/interactions.csv",
+        "results/mes.csv",
+        directory("results/models"),
+        "results/functional_roles.csv"
 
 rule download_mags:
     output:
@@ -89,8 +93,40 @@ rule simulate:
     input:
         "results/manifest.csv"
     output:
-        "results/exchanges.csv",
-        "results/growth_rates.csv",
-        "results/interactions.csv"
+        growth_rates = "results/growth_rates.csv",
+        exchanges = "results/exchanges.csv",
+        annotations = "results/annotations.csv",
+        interactions = "results/interactions.csv",
+        mes = "results/mes.csv",
+        models = directory("results/models")
+    params:
+        growth_media= config["growth_media"],
+        tradeoff= config["tradeoff"]
     shell:
-        "python scripts/simulate.py {input}"
+        "python scripts/simulation.py {input} -g {output.growth_rates} -e {output.exchanges} -a {output.annotations} -i {output.interactions} -m {output.mes} --models {output.models} --growth_media {params.growth_media} --tradeoff {params.tradeoff}"
+
+rule consumer_producer:
+    input:
+        exchanges = "results/exchanges.csv",
+        mes = "results/mes.csv"
+    output:
+        "results/consumer_producer.csv"
+    shell:
+        "python scripts/consumer_producer.py -e {input.exchanges} -m {input.mes} -o {output}"
+
+rule interaction_tendencies:
+    input:
+        interactions = "results/interactions.csv",
+    output:
+        "results/interaction_tendencies.csv"
+    shell:
+        "python scripts/interaction_tendencies.py -i {input.interactions} -o {output}"
+
+rule combine_classifications:
+    input:
+        interaction_tendencies = "results/interaction_tendencies.csv",
+        consumer_producer = "results/consumer_producer.csv"
+    output:
+        "results/functional_roles.csv"
+    shell:
+        "python scripts/combine_classifications.py -t {input.interaction_tendencies} -c {input.consumer_producer} -o {output}"
