@@ -102,6 +102,7 @@ rule simulate:
     params:
         growth_media= config["growth_media"],
         tradeoff= config["tradeoff"]
+    threads: 24
     shell:
         "python scripts/simulation.py {input} -g {output.growth_rates} -e {output.exchanges} -a {output.annotations} -i {output.interactions} -m {output.mes} --models {output.models} --growth_media {params.growth_media} --tradeoff {params.tradeoff}"
 
