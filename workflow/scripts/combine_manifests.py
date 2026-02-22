@@ -41,8 +41,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def read_manifest(path: Path) -> pl.DataFrame:
-    # Use tab separator and let polars infer dtypes
-    return pl.read_csv(path, separator="\t")
+    return pl.read_csv(path)
 
 
 def main() -> None:
@@ -67,14 +66,12 @@ def main() -> None:
         print("No valid input files were provided/read. Exiting.", file=sys.stderr)
         sys.exit(1)
 
-    # polars.concat aligns columns by name and fills missing values with nulls
     combined = pl.concat(dfs)
 
     if args.dedup:
         combined = combined.unique()
 
-    # Write with tab separator and include header
-    combined.write_csv(output_path, separator="\t")
+    combined.write_csv(output_path)
 
     print(f"Wrote combined manifest to: {output_path}")
 
