@@ -51,14 +51,16 @@ rule all:
 rule download_mags:
     output:
         "results/mags/{mag}.fa.gz"
-    threads: 2
+    resources:
+            mem_mb=8000
     shell:
         "wget -O {output} https://spire.embl.de/download_file/{wildcards.mag}"
 
 rule generate_sample_manifest:
     output:
         temp("results/manifests/{sample}.csv")
-    threads: 2
+    resources:
+            mem_mb=8000
     shell:
         "python scripts/generate_sample_manifest.py {wildcards.sample} {output}"
 
@@ -67,7 +69,8 @@ rule combine_manifests:
         expand("results/manifests/{sample}.csv", sample=SAMPLES)
     output:
         "results/manifest.csv"
-    threads: 5
+    resources:
+            mem_mb=8000
     shell:
         "python scripts/combine_manifests.py {output} {input}"
 
@@ -76,6 +79,8 @@ rule reconstruct:
         expand("results/mags/{mag}.fa.gz", mag=MAGS)
     output:
         "results/reconstructions/{mag}.xml"
+    resources:
+            mem_mb=8000
     shell:
         "carve --dna {input} -g M9 --output {output}"
 
