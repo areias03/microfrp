@@ -76,7 +76,7 @@ rule combine_manifests:
 
 rule reconstruct:
     input:
-        expand("results/mags/{mag}.fa.gz", mag=MAGS)
+        "results/mags/{mag}.fa.gz"
     output:
         "results/reconstructions/{mag}.xml"
     resources:
