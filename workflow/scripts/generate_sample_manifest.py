@@ -14,7 +14,7 @@ def get_abundances(sample: Sample):
         [
             mag
             for mag in glob.glob("results/mags/*.fa.gz")
-            if mag.split("/")[-1].split("-")[1].strip(".fa.gz")
+            if mag.split("/")[-1].strip(".fa.gz")
             in sample.get_mags()["genome_id"].to_list()
         ]
     ):
