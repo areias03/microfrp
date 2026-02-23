@@ -23,14 +23,13 @@ if __name__ == "__main__":
     parser.add_argument("--growth_medium", dest="medium", help="growth medium file")
     parser.add_argument("--tradeoff", dest="tradeoff", help="tradeoff value")
     args = parser.parse_args()
-    os.makedirs(args.output, exist_ok=True)
     data = pd.read_csv(args.input)
     manifest = build(
         data,
         model_db=None,
         out_folder=args.models,
         cutoff=0.0001,
-        threads=4,
+        threads=24,
     )
     medium = load_qiime_medium(args.medium)
     res = grow(
@@ -38,7 +37,7 @@ if __name__ == "__main__":
         model_folder=args.models,
         medium=medium,
         tradeoff=args.tradeoff,
-        threads=4,
+        threads=24,
     )
     res.growth_rates.to_csv(args.growth_rates)
     res.exchanges.to_csv(args.exchanges)
