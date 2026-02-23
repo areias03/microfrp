@@ -51,12 +51,14 @@ rule all:
 rule download_mags:
     output:
         "results/mags/{mag}.fa.gz"
+    threads: 2
     shell:
         "wget -O {output} https://spire.embl.de/download_file/{wildcards.mag}"
 
 rule generate_sample_manifest:
     output:
         temp("results/manifests/{sample}.csv")
+    threads: 2
     shell:
         "python scripts/generate_sample_manifest.py {wildcards.sample} {output}"
 
@@ -65,6 +67,7 @@ rule combine_manifests:
         expand("results/manifests/{sample}.csv", sample=SAMPLES)
     output:
         "results/manifest.csv"
+    threads: 5
     shell:
         "python scripts/combine_manifests.py {output} {input}"
 
