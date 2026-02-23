@@ -44,7 +44,7 @@ def generate_manifest(sample: Sample):
                 genome["species"],
                 f"results/reconstructions/{genome['genome_id']}.xml",
                 genome["derived_from_sample"],
-                abun[f"results/mags/{genome['genome_id']}.fa.gz",],
+                abun[f"results/mags/{genome['genome_id']}.fa.gz"],
             ]
         )
 
