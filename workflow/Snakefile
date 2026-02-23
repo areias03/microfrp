@@ -62,11 +62,11 @@ rule generate_sample_manifest:
     resources:
             mem_mb=8000
     shell:
-        "python scripts/generate_sample_manifest.py {wildcards.sample} {output}"
+        "python scripts/generate_sample_manifest.py {wildcards.sample} -o {output}"
 
 rule combine_manifests:
     input:
-        expand("{sample}", sample=SAMPLES)
+        expand("results/manifests/{sample}.csv", sample=SAMPLES)
     output:
         "results/manifest.csv"
     resources:
