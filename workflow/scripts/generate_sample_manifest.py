@@ -74,7 +74,7 @@ def generate_manifest(sample: Sample):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "item",
+        "input",
         metavar="INPUT",
         help="Input item (sample ID)",
         type=str,
