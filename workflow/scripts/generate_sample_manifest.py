@@ -24,6 +24,7 @@ def get_abundances(sample: Sample):
             "totalAvgDepth"
         ].sum()
         abundances[f] = abundance
+        print(f"Abundance for {f}: {abundance}")
     return abundances
 
 
