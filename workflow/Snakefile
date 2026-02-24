@@ -61,6 +61,8 @@ rule download_mags_done:
         expand("results/mags/{mag}.fa.gz", mag=MAGS)
     output:
         touch("results/mags/all.done")
+    resources:
+            mem_mb=8000
     run:
         pass
 
@@ -99,6 +101,8 @@ rule reconstruct_done:
         expand("results/reconstructions/{mag}.xml", mag=MAGS)
     output:
         touch("results/reconstructions/all.done")
+    resources:
+            mem_mb=8000
     run:
         pass
 
