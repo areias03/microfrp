@@ -56,9 +56,18 @@ rule download_mags:
     shell:
         "wget -O {output} https://spire.embl.de/download_file/{wildcards.mag}"
 
+rule download_mags_done:
+    input:
+        expand("results/mags/{mag}.fa.gz", mag=MAGS)
+    output:
+        touch("results/mags/all.done")
+    run:
+        pass
+
 rule generate_sample_manifest:
     output:
-        temp("results/manifests/{sample}.csv")
+        temp("results/manifests/{sample}.csv"),
+        "results/manifests/all.done"
     resources:
             mem_mb=8000
     shell:
