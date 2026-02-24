@@ -29,6 +29,7 @@ if __name__ == "__main__":
         out_folder=args.models,
         cutoff=0.0001,
         threads=24,
+        solver="cplex",
     )
     medium = load_qiime_medium(args.medium)
     res = grow(
