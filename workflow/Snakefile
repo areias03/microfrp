@@ -140,7 +140,7 @@ rule simulate:
         tradeoff= config["tradeoff"]
     threads: 24
     shell:
-        "python scripts/simulation.py {input} -g {output.growth_rates} -e {output.exchanges} -a {output.annotations} -i {output.interactions} -m {output.mes} --models {output.models} --growth_medium {params.growth_media} --tradeoff {params.tradeoff}"
+        "python scripts/simulation.py {input[0]} -g {output.growth_rates} -e {output.exchanges} -a {output.annotations} -i {output.interactions} -m {output.mes} --models {output.models} --growth_medium {params.growth_media} --tradeoff {params.tradeoff}"
 
 rule consumer_producer:
     input:
