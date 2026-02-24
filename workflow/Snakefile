@@ -84,9 +84,18 @@ rule reconstruct:
     shell:
         "carve --dna {input} -g M9 --solver cplex --output {output}"
 
+rule reconstruct_done:
+    input:
+        expand("results/reconstructions/{mag}.xml", mag=MAGS)
+    output:
+        touch("results/reconstructions/all.done")
+    run:
+        pass
+
 rule cleanup_mags:
     input:
-        "results/manifest.csv"
+        "results/manifest.csv",
+        "results/reconstructions/all.done"
     output:
         touch("results/.mags.cleaned")
     resources:
@@ -101,7 +110,8 @@ rule cleanup_mags:
 
 rule simulate:
     input:
-        "results/manifest.csv"
+        "results/manifest.csv",
+        "results/reconstructions/all.done"
     output:
         growth_rates = "results/growth_rates.csv",
         exchanges = "results/exchanges.csv",
