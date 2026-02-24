@@ -65,13 +65,14 @@ rule download_mags_done:
         pass
 
 rule generate_sample_manifest:
+    input:
+        "results/mags/all.done"
     output:
         temp("results/manifests/{sample}.csv"),
-        "results/manifests/all.done"
     resources:
             mem_mb=8000
     shell:
-        "python scripts/generate_sample_manifest.py {wildcards.sample} -o {output}"
+        "python scripts/generate_sample_manifest.py {wildcards.sample} -o {output[0]}"
 
 rule combine_manifests:
     input:
