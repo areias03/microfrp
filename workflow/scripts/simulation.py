@@ -1,5 +1,4 @@
 import argparse
-import os
 
 import pandas as pd
 from micom.interaction import MES, interactions
