@@ -209,3 +209,7 @@ __marimo__/
 #Snakemake workflow results
 workflow/results/
 .snakemake/
+
+# pixi environments
+.pixi/*
+!.pixi/config.toml
