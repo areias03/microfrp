@@ -219,6 +219,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/77/2a/122046ad879c1fa7d65a9d035ef269637496554388206f70194272324f02/snakemake_executor_plugin_cluster_generic-1.0.3-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/1a/c7/e6e9ff155558b473f9eec20f7e35faa15dd6f3d03c4100f7609e44a8428f/snakemake_interface_common-1.19.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a2/43/05097c19edf87c2a967ca0f82ff1a38dbe05d6ce1e128e99a910ee845758/snakemake_interface_executor_plugins-5.0.2-py3-none-any.whl
+      - pypi: git+https://github.com/BigDataBiology/SPIREpy.git#2f682f43db9906df28bd82dc209f85875df6cf7a
       - pypi: https://files.pythonhosted.org/packages/86/4c/876bfea221c2a20bce203cc522d382ae7f2ebf9003f21a889ddc33216f96/swiglpk-5.0.13-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/52/24/597562f9ddc58b5c6d270a94afbd56adb062c09154c076ba034c52985243/symengine-0.14.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
       - pypi: https://files.pythonhosted.org/packages/a2/09/77d55d46fd61b4a135c444fc97158ef34a095e5681d0a6c10b75bf356191/sympy-1.14.0-py3-none-any.whl
@@ -2671,6 +2672,17 @@ packages:
   - pkg:pypi/snakemake?source=hash-mapping
   size: 278078
   timestamp: 1697534627861
+- pypi: git+https://github.com/BigDataBiology/SPIREpy.git#2f682f43db9906df28bd82dc209f85875df6cf7a
+  name: spirepy
+  version: 0.1.0
+  requires_dist:
+  - polars
+  - pandas
+  - rich
+  - joblib
+  - platformdirs
+  - pytest ; extra == 'dev'
+  requires_python: '>=3.9'
 - conda: https://conda.anaconda.org/conda-forge/linux-64/sqlite-3.46.0-h6d4b2fc_0.conda
   sha256: e849d576e52bf3e6fc5786f89b7d76978f2e2438587826c95570324cb572e52b
   md5: 77ea8dff5cf8550cc8f5629a6af56323
