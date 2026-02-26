@@ -18,6 +18,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", dest="annotations", help="annotations file")
     parser.add_argument("-i", dest="interactions", help="interactions file")
     parser.add_argument("-m", dest="mes", help="MES file")
+    parser.add_argument("-t", dest="threads", help="number of threads")
     parser.add_argument("--models", dest="models", help="model folder")
     parser.add_argument("--growth_medium", dest="medium", help="growth medium file")
     parser.add_argument("--tradeoff", dest="tradeoff", help="tradeoff value")
@@ -28,8 +29,8 @@ if __name__ == "__main__":
         model_db=None,
         out_folder=args.models,
         cutoff=0.0001,
-        threads=24,
-        solver="cplex",
+        threads=args.threads,
+        solver="gurobi",
     )
     medium = load_qiime_medium(args.medium)
     res = grow(
@@ -37,10 +38,10 @@ if __name__ == "__main__":
         model_folder=args.models,
         medium=medium,
         tradeoff=args.tradeoff,
-        threads=24,
+        threads=args.threads,
     )
     res.growth_rates.to_csv(args.growth_rates)
     res.exchanges.to_csv(args.exchanges)
     res.annotations.to_csv(args.annotations)
-    interactions(res, taxa=None, threads=24).to_csv(args.interactions)
+    interactions(res, taxa=None, threads=args.threads).to_csv(args.interactions)
     MES(res).to_csv(args.mes)
