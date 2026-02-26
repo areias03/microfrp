@@ -29,7 +29,7 @@ if __name__ == "__main__":
         model_db=None,
         out_folder=args.models,
         cutoff=0.0001,
-        threads=args.threads,
+        threads=int(args.threads),
         solver="gurobi",
     )
     medium = load_qiime_medium(args.medium)
@@ -38,10 +38,10 @@ if __name__ == "__main__":
         model_folder=args.models,
         medium=medium,
         tradeoff=args.tradeoff,
-        threads=args.threads,
+        threads=int(args.threads),
     )
     res.growth_rates.to_csv(args.growth_rates)
     res.exchanges.to_csv(args.exchanges)
     res.annotations.to_csv(args.annotations)
-    interactions(res, taxa=None, threads=args.threads).to_csv(args.interactions)
+    interactions(res, taxa=None, threads=int(args.threads)).to_csv(args.interactions)
     MES(res).to_csv(args.mes)
