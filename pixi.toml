@@ -19,3 +19,4 @@ micom = ">=0.37.1, <0.38"
 cplex = "==22.1.1.0"
 snakemake-executor-plugin-cluster-generic = ">=1.0.3, <2"
 spirepy = { git = "https://github.com/BigDataBiology/SPIREpy.git" }
+ipython = ">=8.18.1, <9"
