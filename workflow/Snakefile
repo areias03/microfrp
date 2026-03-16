@@ -46,7 +46,7 @@ rule all:
         "results/interactions.csv",
         "results/mes.csv",
         directory("results/models"),
-        "results/functional_roles.csv"
+        "results/consumer_producer.csv"
 
 rule download_mags:
     output:
@@ -120,6 +120,10 @@ rule cleanup_mags:
             p = f"results/mags/{mag}.fa.gz"
             if os.path.exists(p):
                 os.remove(p)
+            p = f"results/mags/{mag}.tsv"
+            if os.path.exists(p):
+                os.remove(p)
+	os.rmdir("results/mags")
         open(output[0], "w").close()
 
 rule simulate:
@@ -151,9 +155,10 @@ rule consumer_producer:
     output:
         "results/consumer_producer.csv"
     resources:
-            mem_mb=8000
+	mem_mb=8000,
+	runtime = "2h"
     shell:
-        "python scripts/consumer_producer.py -e {input.exchanges} -m {input.mes} -o {output}"
+        "python scripts/consumer_producer.py {input.exchanges} {input.mes} -o {output}"
 
 # rule interaction_tendencies:
 #     input:

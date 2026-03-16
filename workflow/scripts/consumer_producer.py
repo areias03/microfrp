@@ -1,38 +1,12 @@
-from typing import Dict, Union
+from typing import Union
 
-import numpy as np
 import polars as pl
-from micom.workflows.results import GrowthResults
-
-
-def _consumer_producer_score(
-    reaction_scores,
-    n_exchanges,
-    total_exchanges,
-    abundance,
-    mode,
-    include_abundance,
-):
-    """Helper function to calculate the consumer/producer score."""
-    if mode == "balanced":
-        if include_abundance:
-            return (sum(reaction_scores) * (n_exchanges / total_exchanges)) / abundance
-        else:
-            return sum(reaction_scores) * (n_exchanges / total_exchanges)
-    elif mode == "unbalanced":
-        if include_abundance:
-            return sum(reaction_scores) / abundance
-        else:
-            return sum(reaction_scores)
 
 
 def consumer_producer(
     exchanges: pl.DataFrame,
     mes: pl.DataFrame,
-    manifest: pl.DataFrame,
     taxa: Union[None, str] = None,
-    mode: str = "balanced",
-    with_abundance: bool = False,
 ):
     """Calculate the consumer/producer score for a taxon.
 
@@ -44,22 +18,16 @@ def consumer_producer(
     metabolites to the whole community.
 
     :param exchanges: The exchanges.
-    :type results: :class:`micom.workflows.results.GrowthResults`
+    :type results: :class:`polars.DataFrame`
+
+    :param mes: The Metabolite Exchange Scores.
+    :type results: :class:`polars.DataFrame`
 
     :param taxa: The focal taxa to use. Can be a single taxon or None in which case all taxa are considered.
     :type taxa: Union[str, None]
 
-    :param mode: The balancing mode for the scores. 'balanced' if the scores are to be balanced by the ratio of exchanges or 'unblanced' if not.
-    :type mode: str
-
-    :param with_abundance: Include abundance balancing in scoring function.
-    :type with_abundance: bool
-
     polars.DataFrame
-        The scores for each taxon.
-
-    polars.DataFrame
-        The classification for each taxon.
+        The scores and classifications for each taxon.
 
     References
     ----------
@@ -69,46 +37,34 @@ def consumer_producer(
 
 
     """
-    exchanges = exchanges.filter(exchanges["taxon"] != "medium")
+    exchanges = exchanges.filter(exchanges["taxon"] != "medium").drop("")
+    mes = mes.drop(
+        col for col in mes.columns if col not in ["sample_id", "metabolite", "MES"]
+    )
 
     if taxa is not None:
         exchanges = exchanges.filter(exchanges["taxon"] == taxa)
     exchanges = exchanges.with_columns(MES=pl.lit(0))
 
-    taxon_list = exchanges["taxon"].unique().to_list()
+    exchanges = exchanges.join(mes, on=["sample_id", "metabolite"]).with_columns(
+        reaction_score=pl.col("flux") * pl.col("MES")
+    )
 
-    scores = {}
-    classification = {}
+    exchanges = exchanges.group_by("taxon").agg(
+        cp_score=pl.col("reaction_score").sum(),
+        n_exchanges=pl.count(),
+    )
 
-    for t in sorted(taxon_list):
-        temp = exchanges.filter(exchanges["taxon"] == t)
-        i = 0
-        for line in temp.iter_rows(named=True):
-            temp[i, "MES"] = mes.filter(
-                (mes["sample_id"] == line["sample_id"])
-                & (mes["metabolite"] == line["metabolite"])
-            )["MES"][0]
-            i += 1
-        temp = temp.with_columns(reaction_score=(pl.col("flux") * pl.col("MES")))
-        abun = manifest.filter(manifest["id"] == t)["abundance"][0]
-        scores[t] = _consumer_producer_score(
-            temp["reaction_score"].to_list(),
-            len(temp),
-            len(exchanges),
-            abun,
-            mode,
-            with_abundance,
-        )
+    classifications = exchanges.with_columns(
+        pl.when(pl.col("cp_score") >= pl.col("cp_score").quantile(0.75))
+        .then("Producer")
+        .when(pl.col("cp_score") <= pl.col("cp_score").quantile(0.25))
+        .then("Consumer")
+        .otherwise("Mixed")
+        .alias("classification")
+    )
 
-    for i in scores.keys():
-        if scores[i] > np.percentile(list(scores.values()), 75):
-            classification[i] = "Producer"
-        elif np.percentile(list(scores.values()), 25) > scores[i]:
-            classification[i] = "Consumer"
-        else:
-            classification[i] = "Mixed"
-
-    return scores, classification
+    return classifications.select(["taxon", "cp_score", "classification"])
 
 
 if __name__ == "__main__":
@@ -119,25 +75,11 @@ if __name__ == "__main__":
     )
     parser.add_argument("exchanges", type=str, help="Path to exchanges CSV file.")
     parser.add_argument("mes", type=str, help="Path to MES CSV file.")
-    parser.add_argument("manifest", type=str, help="Path to manifest CSV file.")
     parser.add_argument(
         "--taxa",
         type=str,
         default=None,
         help="Focal taxon to analyze (default: all taxa).",
-    )
-    parser.add_argument(
-        "--mode",
-        type=str,
-        choices=["balanced", "unbalanced"],
-        default="balanced",
-        help="Balancing mode for scores (default: balanced).",
-    )
-    parser.add_argument(
-        "--with-abundance",
-        action="store_true",
-        default=False,
-        help="Include abundance balancing in scoring function.",
     )
     parser.add_argument(
         "-o",
@@ -151,17 +93,8 @@ if __name__ == "__main__":
     mes = pl.read_csv(args.mes)
     manifest = pl.read_csv(args.manifest)
 
-    scores, classification = consumer_producer(
+    classifications = consumer_producer(
         exchanges=exchanges,
         mes=mes,
-        manifest=manifest,
         taxa=args.taxa,
-        mode=args.mode,
-        with_abundance=args.with_abundance,
-    )
-
-    scores = pl.DataFrame({"taxon": scores.keys(), "score": scores.values()})
-    classification = pl.DataFrame(
-        {"taxon": classification.keys(), "classification": classification.values()}
-    )
-    scores.join(classification, on="taxon").write_csv(args.output)
+    ).write_csv(args.output)
