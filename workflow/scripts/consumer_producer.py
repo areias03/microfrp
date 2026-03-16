@@ -44,15 +44,15 @@ def consumer_producer(
 
     if taxa is not None:
         exchanges = exchanges.filter(exchanges["taxon"] == taxa)
-    exchanges = exchanges.with_columns(MES=pl.lit(0))
 
-    exchanges = exchanges.join(mes, on=["sample_id", "metabolite"]).with_columns(
+    exchanges = exchanges.join(mes, on=["sample_id", "metabolite"])
+
+    exchanges = exchanges.with_columns(
         reaction_score=pl.col("flux") * pl.col("MES")
     )
 
     exchanges = exchanges.group_by("taxon").agg(
         cp_score=pl.col("reaction_score").sum(),
-        n_exchanges=pl.count(),
     )
 
     classifications = exchanges.with_columns(
