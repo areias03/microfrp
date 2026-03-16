@@ -91,7 +91,6 @@ if __name__ == "__main__":
 
     exchanges = pl.read_csv(args.exchanges)
     mes = pl.read_csv(args.mes)
-    manifest = pl.read_csv(args.manifest)
 
     classifications = consumer_producer(
         exchanges=exchanges,
