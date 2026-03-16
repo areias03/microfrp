@@ -57,10 +57,10 @@ def consumer_producer(
 
     classifications = exchanges.with_columns(
         pl.when(pl.col("cp_score") >= pl.col("cp_score").quantile(0.75))
-        .then("Producer")
+        .then(pl.lit("Producer"))
         .when(pl.col("cp_score") <= pl.col("cp_score").quantile(0.25))
-        .then("Consumer")
-        .otherwise("Mixed")
+        .then(pl.lit("Consumer"))
+        .otherwise(pl.lit("Mixed"))
         .alias("classification")
     )
 
