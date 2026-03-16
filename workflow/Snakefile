@@ -134,7 +134,8 @@ rule simulate:
         mes = "results/mes.csv",
         models = directory("results/models")
     resources:
-            mem_mb=192000
+	mem_mb=192000,
+	runtime = "2h"
     params:
         growth_media= config["growth_media"],
         tradeoff= config["tradeoff"]
