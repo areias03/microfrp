@@ -155,23 +155,23 @@ rule consumer_producer:
     shell:
         "python scripts/consumer_producer.py -e {input.exchanges} -m {input.mes} -o {output}"
 
-rule interaction_tendencies:
-    input:
-        interactions = "results/interactions.csv",
-    output:
-        "results/interaction_tendencies.csv"
-    resources:
-            mem_mb=8000
-    shell:
-        "python scripts/interaction_tendencies.py -i {input.interactions} -o {output}"
-
-rule combine_classifications:
-    input:
-        interaction_tendencies = "results/interaction_tendencies.csv",
-        consumer_producer = "results/consumer_producer.csv"
-    output:
-        "results/functional_roles.csv"
-    resources:
-            mem_mb=8000
-    shell:
-        "python scripts/combine_classifications.py -t {input.interaction_tendencies} -c {input.consumer_producer} -o {output}"
+# rule interaction_tendencies:
+#     input:
+#         interactions = "results/interactions.csv",
+#     output:
+#         "results/interaction_tendencies.csv"
+#     resources:
+#             mem_mb=8000
+#     shell:
+#         "python scripts/interaction_tendencies.py -i {input.interactions} -o {output}"
+#
+# rule combine_classifications:
+#     input:
+#         interaction_tendencies = "results/interaction_tendencies.csv",
+#         consumer_producer = "results/consumer_producer.csv"
+#     output:
+#         "results/functional_roles.csv"
+#     resources:
+#             mem_mb=8000
+#     shell:
+#         "python scripts/combine_classifications.py -t {input.interaction_tendencies} -c {input.consumer_producer} -o {output}"

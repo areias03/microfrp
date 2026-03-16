@@ -27,10 +27,9 @@ def _consumer_producer_score(
 
 
 def consumer_producer(
-    results: pl.DataFrame,
+    exchanges: pl.DataFrame,
     mes: pl.DataFrame,
     manifest: pl.DataFrame,
-    # results: GrowthResults,
     taxa: Union[None, str] = None,
     mode: str = "balanced",
     with_abundance: bool = False,
@@ -44,7 +43,7 @@ def consumer_producer(
     it produces. A positive value indicates higher rates of production of impactful
     metabolites to the whole community.
 
-    :param results: The growth results to use.
+    :param exchanges: The exchanges.
     :type results: :class:`micom.workflows.results.GrowthResults`
 
     :param taxa: The focal taxa to use. Can be a single taxon or None in which case all taxa are considered.
@@ -70,9 +69,6 @@ def consumer_producer(
 
 
     """
-    exchanges = results
-    # exchanges = pl.from_pandas(results.exchanges)
-    # mes = pl.from_pandas(MES(results))
     exchanges = exchanges.filter(exchanges["taxon"] != "medium")
 
     if taxa is not None:
@@ -121,7 +117,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Calculate consumer/producer scores for taxa."
     )
-    parser.add_argument("results", type=str, help="Path to exchanges CSV file.")
+    parser.add_argument("exchanges", type=str, help="Path to exchanges CSV file.")
     parser.add_argument("mes", type=str, help="Path to MES CSV file.")
     parser.add_argument("manifest", type=str, help="Path to manifest CSV file.")
     parser.add_argument(
@@ -140,27 +136,32 @@ if __name__ == "__main__":
     parser.add_argument(
         "--with-abundance",
         action="store_true",
+        default=False,
         help="Include abundance balancing in scoring function.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=str,
+        help="Path to output CSV file for scores and classifications.",
     )
     args = parser.parse_args()
 
-    results_df = pl.read_csv(args.results)
-    mes_df = pl.read_csv(args.mes)
-    manifest_df = pl.read_csv(args.manifest)
+    exchanges = pl.read_csv(args.exchanges)
+    mes = pl.read_csv(args.mes)
+    manifest = pl.read_csv(args.manifest)
 
     scores, classification = consumer_producer(
-        results=results_df,
-        mes=mes_df,
-        manifest=manifest_df,
+        exchanges=exchanges,
+        mes=mes,
+        manifest=manifest,
         taxa=args.taxa,
         mode=args.mode,
         with_abundance=args.with_abundance,
     )
 
-    print("Scores:")
-    for taxon, score in scores.items():
-        print(f"{taxon}: {score}")
-
-    print("\nClassification:")
-    for taxon, cls in classification.items():
-        print(f"{taxon}: {cls}")
+    scores = pl.DataFrame({"taxon": scores.keys(), "score": scores.values()})
+    classification = pl.DataFrame(
+        {"taxon": classification.keys(), "classification": classification.values()}
+    )
+    scores.join(classification, on="taxon").write_csv(args.output)
