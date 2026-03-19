@@ -45,7 +45,7 @@ rule all:
         "results/annotations.csv",
         "results/interactions.csv",
         "results/mes.csv",
-        directory("results/models"),
+        "results/models",
         "results/consumer_producer.csv"
 
 rule download_mags:
@@ -125,12 +125,12 @@ rule cleanup_mags:
             if os.path.exists(p):
                 os.remove(p)
 #	os.rmdir("results/mags")
-        open(output[0], "w").close()
+        open(output, "w").close()
 
 rule simulate:
     input:
-        "results/manifest.csv",
-        "results/reconstructions/all.done"
+        manifest = "results/manifest.csv",
+        reconstructions_done = "results/reconstructions/all.done"
     output:
         growth_rates = "results/growth_rates.csv",
         exchanges = "results/exchanges.csv",
@@ -147,7 +147,7 @@ rule simulate:
     threads:
         len(SAMPLES)
     shell:
-        "python scripts/simulation.py {input[0]} -g {output.growth_rates} -e {output.exchanges} -a {output.annotations} -i {output.interactions} -m {output.mes} -t {threads} --models {output.models} --growth_medium {params.growth_media} --tradeoff {params.tradeoff}"
+        "python scripts/simulation.py {input.manifest} -g {output.growth_rates} -e {output.exchanges} -a {output.annotations} -i {output.interactions} -m {output.mes} -t {threads} --models {output.models} --growth_medium {params.growth_media} --tradeoff {params.tradeoff}"
 
 rule consumer_producer:
     input:
