@@ -62,6 +62,9 @@ def interaction_tendencies(
             [
                 "focal",
                 "log_ratio",
+                "provided_count",
+                "received_count",
+                "co_consumed_count",
             ]
         )
         .with_columns(
