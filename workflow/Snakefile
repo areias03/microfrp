@@ -46,7 +46,8 @@ rule all:
         "results/interactions.csv",
         "results/mes.csv",
         "results/models",
-        "results/consumer_producer.csv"
+        "results/consumer_producer.csv",
+	"results/interaction_tendencies.csv",
 
 rule download_mags:
     output:
@@ -123,8 +124,6 @@ rule cleanup_mags:
             p = f"results/mags/{mag}.tsv"
             if os.path.exists(p):
                 os.remove(p)
-#	os.rmdir("results/mags")
-        open(output, "w").close()
 
 rule simulate:
     input:
