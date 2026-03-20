@@ -113,8 +113,7 @@ rule cleanup_mags:
     output:
         touch("results/.mags.cleaned")
     resources:
-	    mem_mb=8000,
-	    runtime = "2h"
+	    mem_mb=8000
     run:
         import os
         for mag in MAGS:
@@ -139,8 +138,7 @@ rule simulate:
         mes = "results/mes.csv",
         models = directory("results/models")
     resources:
-	    mem_mb=192000,
-	    runtime = "2h"
+	    mem_mb=192000
     params:
         growth_media= config["growth_media"],
         tradeoff= config["tradeoff"]
@@ -156,8 +154,7 @@ rule consumer_producer:
     output:
         "results/consumer_producer.csv"
     resources:
-	    mem_mb=8000,
-	    runtime = "2h"
+	    mem_mb=8000
     shell:
         "python scripts/consumer_producer.py {input.exchanges} {input.mes} -o {output}"
 
