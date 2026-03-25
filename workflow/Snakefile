@@ -38,7 +38,7 @@ print("MAGS to process:", MAGS)
 rule all:
     input:
         "results/manifest.csv",
-        expand("results/reconstructions/{mag}.xml", mag=MAGS),
+	"results/reconstructions/all.done",
         "results/.mags.cleaned",
         "results/growth_rates.csv",
         "results/exchanges.csv",
@@ -169,11 +169,11 @@ rule cooperation_alignment:
 
 rule combine_classifications:
     input:
+        uptake_tendency = "results/uptake_tendency.csv",
         cooperation_alignment = "results/cooperation_alignment.csv",
-        uptake_tendency = "results/uptake_tendency.csv"
     output:
         "results/functional_roles.csv"
     resources:
             mem_mb=8000
     shell:
-        "python scripts/combine_classifications.py {input.cooperation_alignment} {input.uptake_tendency} -o {output}"
+        "python scripts/combine_classifications.py {input.uptake_tendency} {input.cooperation_alignment} -o {output}"
