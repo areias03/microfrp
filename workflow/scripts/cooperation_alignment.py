@@ -70,9 +70,9 @@ def cooperation_alignment(
         .with_columns(
             [
                 pl.when(pl.col("log_ratio") >= pl.col("log_ratio").quantile(0.5))
-                .then(pl.lit("Cooperator"))
+                .then(pl.lit("Cooperative"))
                 .when(pl.col("log_ratio") < pl.col("log_ratio").quantile(0.5))
-                .then(pl.lit("Uncooperator"))
+                .then(pl.lit("Uncooperative"))
                 .alias("cooperation_alignment")
             ]
         )
