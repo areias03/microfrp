@@ -167,13 +167,24 @@ rule cooperation_alignment:
     shell:
         "python scripts/cooperation_alignment.py {input.interactions} -o {output}"
 
+rule provisioning_bias:
+    input:
+	interactions = "results/interactions.csv",
+    output:
+	"results/provisioning_bias.csv"
+    resources:
+	    mem_mb=8000
+    shell:
+	"python scripts/provisioning_bias.py {input.interactions} -o {output}"
+
 rule combine_classifications:
     input:
         uptake_tendency = "results/uptake_tendency.csv",
         cooperation_alignment = "results/cooperation_alignment.csv",
+	provisioning_bias = "results/provisioning_bias.csv",
     output:
         "results/functional_roles.csv"
     resources:
             mem_mb=8000
     shell:
-        "python scripts/combine_classifications.py {input.uptake_tendency} {input.cooperation_alignment} -o {output}"
+        "python scripts/combine_classifications.py {input.uptake_tendency} {input.cooperation_alignment} {input.provisioning_bias} -o {output}"
