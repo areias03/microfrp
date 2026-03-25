@@ -169,13 +169,13 @@ rule cooperation_alignment:
 
 rule provisioning_bias:
     input:
-	interactions = "results/interactions.csv",
+        interactions = "results/interactions.csv",
     output:
-	"results/provisioning_bias.csv"
+        "results/provisioning_bias.csv"
     resources:
-	    mem_mb=8000
+            mem_mb=8000
     shell:
-	"python scripts/provisioning_bias.py {input.interactions} -o {output}"
+        "python scripts/provisioning_bias.py {input.interactions} -o {output}"
 
 rule combine_classifications:
     input:
