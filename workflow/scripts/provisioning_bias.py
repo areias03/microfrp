@@ -43,15 +43,20 @@ def provisioning_bias(
         .with_columns(
             [
                 (
-                    (pl.col("provided_count") - pl.col("received_count"))
+                    (
+                        pl.col("provided_count").cast(pl.Float64)
+                        - pl.col("received_count").cast(pl.Float64)
+                    )
                     / (pl.col("provided_count") + pl.col("received_count"))
                 ).alias("provisioning_bias_score"),
             ]
         )
-        .select(
+        .with_columns(
             [
-                "focal",
-                "provisioning_bias_score",
+                pl.when((pl.col("provided_count") + pl.col("received_count")) == 0)
+                .then(None)
+                .otherwise(pl.col("provisioning_bias_score"))
+                .alias("provisioning_bias_score")
             ]
         )
         .with_columns(
@@ -61,11 +66,18 @@ def provisioning_bias(
                 .when(pl.col("provisioning_bias_score") < 0)
                 .then(pl.lit("Receiver"))
                 .otherwise(pl.lit("Balanced"))
-                .alias("provisioning_bias"),
+                .alias("provisioning_bias")
+            ]
+        )
+        .select(
+            [
+                "focal",
+                "provisioning_bias",
             ]
         )
     )
-    return result.rename({"focal": "taxon"}).select(["taxon", "provisioning_bias"])
+
+    return result.rename({"focal": "taxon"})
 
 
 if __name__ == "__main__":
