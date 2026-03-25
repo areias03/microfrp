@@ -117,6 +117,7 @@ rule cleanup_mags:
 	    mem_mb=8000
     run:
         import os
+	import shutil
         for mag in MAGS:
             p = f"results/mags/{mag}.fa.gz"
             if os.path.exists(p):
@@ -124,6 +125,7 @@ rule cleanup_mags:
             p = f"results/mags/{mag}.tsv"
             if os.path.exists(p):
                 os.remove(p)
+	shutil.rmtree("results/mags", ignore_errors=True)
 
 rule simulate:
     input:
