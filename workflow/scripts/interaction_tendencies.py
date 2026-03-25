@@ -3,12 +3,12 @@ from typing import Union
 import polars as pl
 
 
-def interaction_tendencies(
+def cooperation_alignment(
     interactions: pl.DataFrame,
     taxa: Union[None, str] = None,
 ) -> pl.DataFrame:
     """
-    Calculate consumer/producer scores for taxa based on exchange fluxes and MES.
+    Calculate cooperation alignment classifications for taxa based on exchange fluxes and MES.
 
     Parameters
     ----------
@@ -73,18 +73,18 @@ def interaction_tendencies(
                 .then(pl.lit("Cooperator"))
                 .when(pl.col("log_ratio") < pl.col("log_ratio").quantile(0.5))
                 .then(pl.lit("Uncooperator"))
-                .alias("interaction_classification")
+                .alias("cooperation_alignment")
             ]
         )
     )
-    return result.rename({"focal": "taxon", "log_ratio": "interaction_score"})
+    return result.rename({"focal": "taxon"}).select(["taxon", "cooperation_alignment"])
 
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Calculate interaction tendency scores for taxa."
+        description="Calculate cooperation alignments for taxa."
     )
     parser.add_argument("interactions", type=str, help="Path to interactions CSV file.")
     parser.add_argument(
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
     interactions = pl.read_csv(args.interactions)
 
-    classifications = interaction_tendencies(
+    classifications = cooperation_alignment(
         interactions=interactions,
         taxa=args.taxa,
     ).write_csv(args.output)

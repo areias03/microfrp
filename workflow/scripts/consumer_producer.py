@@ -47,9 +47,7 @@ def consumer_producer(
 
     exchanges = exchanges.join(mes, on=["sample_id", "metabolite"])
 
-    exchanges = exchanges.with_columns(
-        reaction_score=pl.col("flux") * pl.col("MES")
-    )
+    exchanges = exchanges.with_columns(reaction_score=pl.col("flux") * pl.col("MES"))
 
     exchanges = exchanges.group_by("taxon").agg(
         cp_score=pl.col("reaction_score").sum(),
@@ -61,10 +59,10 @@ def consumer_producer(
         .when(pl.col("cp_score") <= pl.col("cp_score").quantile(0.25))
         .then(pl.lit("Consumer"))
         .otherwise(pl.lit("Mixed"))
-        .alias("classification")
+        .alias("uptake_tendency")
     )
 
-    return classifications.select(["taxon", "cp_score", "classification"])
+    return classifications.select(["taxon", "uptake_tendency"])
 
 
 if __name__ == "__main__":
