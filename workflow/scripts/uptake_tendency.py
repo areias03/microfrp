@@ -3,15 +3,15 @@ from typing import Union
 import polars as pl
 
 
-def consumer_producer(
+def uptake_tendecy(
     exchanges: pl.DataFrame,
     mes: pl.DataFrame,
     taxa: Union[None, str] = None,
 ):
-    """Calculate the consumer/producer score for a taxon.
+    """Calculate the uptake tendency classification for a taxon.
 
     This parameter is defined as the sum of all import and export fluxes
-    multiplied by their repective metabolite's Metabolite Exchange Score (MES).
+    multiplied by their respective metabolite's Metabolite Exchange Score (MES).
     It represents the harmonic mean of all fluxes for a single taxon. A negative
     value indicates that the taxon consumes more impactful metabolites than what
     it produces. A positive value indicates higher rates of production of impactful
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Calculate consumer/producer scores for taxa."
+        description="Calculate uptake tendency scores for taxa."
     )
     parser.add_argument("exchanges", type=str, help="Path to exchanges CSV file.")
     parser.add_argument("mes", type=str, help="Path to MES CSV file.")
@@ -83,14 +83,14 @@ if __name__ == "__main__":
         "-o",
         "--output",
         type=str,
-        help="Path to output CSV file for scores and classifications.",
+        help="Path to output CSV file for classifications.",
     )
     args = parser.parse_args()
 
     exchanges = pl.read_csv(args.exchanges)
     mes = pl.read_csv(args.mes)
 
-    classifications = consumer_producer(
+    classifications = uptake_tendecy(
         exchanges=exchanges,
         mes=mes,
         taxa=args.taxa,
