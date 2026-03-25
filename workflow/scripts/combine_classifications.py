@@ -18,7 +18,7 @@ if __name__ == "__main__":
     dfs = [pl.read_csv(file) for file in args.files]
     df_joined = dfs[0]
     for df in dfs[1:]:
-        df_joined = df_joined.join(df, on="taxon", how="outer")
+        df_joined = df_joined.join(df, on="taxon")
     classifications = df_joined.with_columns(
         pl.concat_str(pl.exclude("taxon").str.slice(0, 1)).alias("functional_role")
     ).write_csv(args.output)
