@@ -6,12 +6,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Combine classifications from multiple files."
     )
-    parser.add_argument(
-        "cp", "-c", help="Path to input consumer/producer classification file."
-    )
-    parser.add_argument(
-        "it", "-i", help="Path to input interaction tendency classification file."
-    )
+    parser.add_argument("files", nargs="+", help="Path to input classification files.")
     parser.add_argument(
         "output",
         "-o",
@@ -19,12 +14,10 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    cp_classifications = pl.read_csv(args.cp)
-    interaction_classifications = pl.read_csv(args.it)
-    classifications = cp_classifications.join(
-        interaction_classifications, on="taxon", how="outer"
-    ).fill_null("Unclassified")
-
-    classifications = classifications.with_columns(
+    dfs = [pl.read_csv(file) for file in args.files]
+    df_joined = dfs[0]
+    for df in dfs[1:]:
+        df_joined = df_joined.join(df, on="taxon", how="outer")
+    classifications = df_joined.with_columns(
         pl.concat_str(pl.exclude("taxon").str.slice(0, 1)).alias("functional_role")
     ).write_csv(args.output)
