@@ -8,8 +8,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("files", nargs="+", help="Path to input classification files.")
     parser.add_argument(
-        "output",
         "-o",
+        "--output",
+        type=str,
         help="Path to the output combined classification file.",
     )
     args = parser.parse_args()
