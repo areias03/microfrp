@@ -7,30 +7,9 @@ import spirepy
 
 ITEM_ID = config["item"]
 
-def find_item_type(item_id):
-    study_response = requests.get(f"https://spire.embl.de/spire/api/study/{item_id}")
-    sample_response = requests.get(f"https://spire.embl.de/spire/api/sample/{item_id}")
-
-    if len(study_response.content) > 3:
-        return "study"
-    elif len(sample_response.content) > 3:
-        return "sample"
-    else:
-        raise ValueError(f"Item {item_id} not found on SPIRE.")
-
-
-ITEM_TYPE = find_item_type(ITEM_ID)
-
-if ITEM_TYPE == "study":
-    study = spirepy.Study(ITEM_ID)
-    SAMPLES = [s.id for s in study.get_samples()]
-    MAGS = study.get_mags()["genome_id"].to_list()
-elif ITEM_TYPE == "sample":
-    SAMPLES = [ITEM_ID]
-    sample = spirepy.Sample(ITEM_ID)
-    MAGS = sample.get_mags()["genome_id"].to_list()
-else:
-    raise ValueError("Unknown item type")
+study = spirepy.Study(ITEM_ID)
+SAMPLES = [s.id for s in study.get_samples()]
+MAGS = study.get_mags()["genome_id"].to_list()
 
 print("Samples to process:", SAMPLES)
 print("MAGS to process:", MAGS)
@@ -46,15 +25,19 @@ rule functional_roles:
         "results/interactions.csv",
         "results/mes.csv",
         "results/models",
-	"results/functional_roles.tsv",
+        "results/functional_roles.tsv",
 
 rule download_mags:
+    input:
+	directory("results/mags")
     output:
         "results/mags/{mag}.fa.gz"
     resources:
             mem_mb=8000
+    params:
+	item_id=ITEM_ID
     shell:
-        "wget -O {output} https://spire.embl.de/download_file/{wildcards.mag}"
+        "mkdir {input} && wget https://swifter.embl.de/~fullam/spire/compiled/{params.item_id}_spire_v1_MAGs.tar -xz -O - | tar -xJ -C results/mags"
 
 rule download_mags_done:
     input:
