@@ -1,5 +1,6 @@
 configfile: "config/config.yaml"
 
+import os
 import requests
 import logging as log
 import polars as pl
@@ -26,21 +27,26 @@ rule functional_roles:
 
 checkpoint download_mags:
     output:
-        directory("results/mags")
+        mags_dir=directory("results/mags"),
+        done_flag=touch("results/.mags_downloaded")
     resources:
         mem_mb=8000
     params:
         item_id=ITEM_ID
     shell:
         """
-        mkdir -p {output}
-        wget -O - https://swifter.embl.de/~fullam/spire/compiled/{params.item_id}_spire_v1_MAGs.tar | tar -xf - -C {output} --strip-components=1
+        mkdir -p {output.mags_dir}
+        wget -O - https://swifter.embl.de/~fullam/spire/compiled/{params.item_id}_spire_v1_MAGs.tar | tar -xf - -C {output.mags_dir} --strip-components=1
         """
+
+def get_mag_input(wildcards):
+    # This function ensures the checkpoint is completed before accessing the file
+    checkpoint_output = checkpoints.download_mags.get(**wildcards).output.mags_dir
+    return os.path.join(checkpoint_output, f"{wildcards.mag}.fa.gz")
 
 def get_reconstructions(wildcards):
     import glob
-    import os
-    checkpoint_output = checkpoints.download_mags.get(**wildcards).output[0]
+    checkpoint_output = checkpoints.download_mags.get(**wildcards).output.mags_dir
     mag_files = glob.glob(os.path.join(checkpoint_output, "*.fa.gz"))
     
     if mag_files:
@@ -72,7 +78,7 @@ rule combine_manifests:
 
 rule reconstruct:
     input:
-        "results/mags/{mag}.fa.gz"
+        get_mag_input
     output:
         "results/reconstructions/{mag}.xml"
     resources:
@@ -92,8 +98,7 @@ rule reconstruct_done:
 
 def get_mag_files_to_cleanup(wildcards):
     import glob
-    import os
-    checkpoint_output = checkpoints.download_mags.get(**wildcards).output[0]
+    checkpoint_output = checkpoints.download_mags.get(**wildcards).output.mags_dir
     mag_files = glob.glob(os.path.join(checkpoint_output, "*.fa.gz"))
     mag_files.extend(glob.glob(os.path.join(checkpoint_output, "*.tsv")))
     
