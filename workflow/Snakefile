@@ -46,7 +46,7 @@ rule functional_roles:
         "results/interactions.csv",
         "results/mes.csv",
         "results/models",
-	"results/functional_roles.csv",
+	"results/functional_roles.tsv",
 
 rule download_mags:
     output:
@@ -195,7 +195,7 @@ rule combine_classifications:
         provisioning_bias = "results/provisioning_bias.csv",
         interaction_synergy = "results/interaction_synergy.csv",
     output:
-        "results/functional_roles.csv"
+        "results/functional_roles.tsv"
     resources:
             mem_mb=8000
     shell:
