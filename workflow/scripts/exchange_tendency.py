@@ -3,12 +3,12 @@ from typing import Union
 import polars as pl
 
 
-def uptake_tendecy(
+def exchange_tendency(
     exchanges: pl.DataFrame,
     mes: pl.DataFrame,
     taxa: Union[None, str] = None,
 ):
-    """Calculate the uptake tendency classification for a taxon.
+    """Calculate the exchange tendency classification for a taxon.
 
     This parameter is defined as the sum of all import and export fluxes
     multiplied by their respective metabolite's Metabolite Exchange Score (MES).
@@ -59,17 +59,17 @@ def uptake_tendecy(
         .when(pl.col("cp_score") <= pl.col("cp_score").quantile(0.25))
         .then(pl.lit("Consumer"))
         .otherwise(pl.lit("Mixed"))
-        .alias("uptake_tendency")
+        .alias("exchange_tendency")
     )
 
-    return classifications.select(["taxon", "uptake_tendency"])
+    return classifications.select(["taxon", "exchange_tendency"])
 
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Calculate uptake tendency scores for taxa."
+        description="Calculate exchange tendency scores for taxa."
     )
     parser.add_argument("exchanges", type=str, help="Path to exchanges CSV file.")
     parser.add_argument("mes", type=str, help="Path to MES CSV file.")
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     exchanges = pl.read_csv(args.exchanges)
     mes = pl.read_csv(args.mes)
 
-    classifications = uptake_tendecy(
+    classifications = exchange_tendency(
         exchanges=exchanges,
         mes=mes,
         taxa=args.taxa,

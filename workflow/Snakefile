@@ -35,7 +35,7 @@ else:
 print("Samples to process:", SAMPLES)
 print("MAGS to process:", MAGS)
 
-rule all:
+rule functional_roles:
     input:
         "results/manifest.csv",
 	"results/reconstructions/all.done",
@@ -146,16 +146,16 @@ rule simulate:
     shell:
         "python scripts/simulation.py {input.manifest} -g {output.growth_rates} -e {output.exchanges} -a {output.annotations} -i {output.interactions} -m {output.mes} -t {threads} --models {output.models} --growth_medium {params.growth_media} --tradeoff {params.tradeoff}"
 
-rule uptake_tendency:
+rule exchange_tendency:
     input:
         exchanges = "results/exchanges.csv",
         mes = "results/mes.csv"
     output:
-        "results/uptake_tendency.csv"
+        "results/exchange_tendency.csv"
     resources:
 	    mem_mb=8000
     shell:
-        "python scripts/uptake_tendency.py {input.exchanges} {input.mes} -o {output}"
+        "python scripts/exchange_tendency.py {input.exchanges} {input.mes} -o {output}"
 
 rule cooperation_alignment:
     input:
@@ -190,7 +190,7 @@ rule interaction_synergy:
 
 rule combine_classifications:
     input:
-        uptake_tendency = "results/uptake_tendency.csv",
+        exchange_tendency = "results/exchange_tendency.csv",
         cooperation_alignment = "results/cooperation_alignment.csv",
         provisioning_bias = "results/provisioning_bias.csv",
         interaction_synergy = "results/interaction_synergy.csv",
@@ -199,4 +199,4 @@ rule combine_classifications:
     resources:
             mem_mb=8000
     shell:
-        "python scripts/combine_classifications.py {input.uptake_tendency} {input.cooperation_alignment} {input.provisioning_bias} {input.interaction_synergy} -o {output}"
+        "python scripts/combine_classifications.py {input.exchange_tendency} {input.cooperation_alignment} {input.provisioning_bias} {input.interaction_synergy} -o {output}"
