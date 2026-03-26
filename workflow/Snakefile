@@ -32,12 +32,35 @@ checkpoint download_mags:
     resources:
         mem_mb=8000
     params:
-        item_id=ITEM_ID
-    shell:
-        """
-        mkdir -p {output.mags_dir}
-        wget -O - https://swifter.embl.de/~fullam/spire/compiled/{params.item_id}_spire_v1_MAGs.tar | tar -xf - -C {output.mags_dir} --strip-components=1
-        """
+        item_id=ITEM_ID,
+        mags_to_keep=MAGS
+    run:
+        import subprocess
+        import glob
+        
+        # Download and extract all MAGs
+        shell("mkdir -p {output.mags_dir}")
+        shell("wget -O - https://swifter.embl.de/~fullam/spire/compiled/{params.item_id}_spire_v1_MAGs.tar | tar -xf - -C {output.mags_dir} --strip-components=1")
+        
+        # Get all downloaded files
+        all_files = glob.glob(os.path.join(output.mags_dir, "*.fa.gz"))
+        all_files.extend(glob.glob(os.path.join(output.mags_dir, "*.tsv")))
+        
+        # Filter: keep only files for MAGs in our list
+        mags_to_keep_set = set(params.mags_to_keep)
+        for filepath in all_files:
+            filename = os.path.basename(filepath)
+            # Extract MAG ID (remove .fa.gz or .tsv extension)
+            mag_id = filename.replace(".fa.gz", "").replace(".tsv", "")
+            
+            if mag_id not in mags_to_keep_set:
+                # Remove files not in our MAGS list
+                os.remove(filepath)
+                print(f"Removed {filename} - not in MAGS list")
+        
+        # Report what was kept
+        kept_files = glob.glob(os.path.join(output.mags_dir, "*.fa.gz"))
+        print(f"Kept {len(kept_files)} MAG files out of {len(all_files)} downloaded")
 
 def get_mag_input(wildcards):
     # This function ensures the checkpoint is completed before accessing the file
@@ -45,16 +68,9 @@ def get_mag_input(wildcards):
     return os.path.join(checkpoint_output, f"{wildcards.mag}.fa.gz")
 
 def get_reconstructions(wildcards):
-    import glob
-    checkpoint_output = checkpoints.download_mags.get(**wildcards).output.mags_dir
-    mag_files = glob.glob(os.path.join(checkpoint_output, "*.fa.gz"))
-    
-    if mag_files:
-        mag_ids = [os.path.basename(f).replace(".fa.gz", "") for f in mag_files]
-    else:
-        mag_ids = MAGS
-    
-    return expand("results/reconstructions/{mag}.xml", mag=mag_ids)
+    # Force checkpoint to complete, then use MAGS list since we filter to only keep those
+    checkpoints.download_mags.get(**wildcards)
+    return expand("results/reconstructions/{mag}.xml", mag=MAGS)
 
 rule generate_sample_manifest:
     input:
@@ -97,15 +113,10 @@ rule reconstruct_done:
         pass
 
 def get_mag_files_to_cleanup(wildcards):
-    import glob
+    # Force checkpoint to complete, then list files based on MAGS since we filter
     checkpoint_output = checkpoints.download_mags.get(**wildcards).output.mags_dir
-    mag_files = glob.glob(os.path.join(checkpoint_output, "*.fa.gz"))
-    mag_files.extend(glob.glob(os.path.join(checkpoint_output, "*.tsv")))
-    
-    if not mag_files:
-        mag_files = [os.path.join(checkpoint_output, f"{mag}.fa.gz") for mag in MAGS]
-        mag_files.extend([os.path.join(checkpoint_output, f"{mag}.tsv") for mag in MAGS])
-    
+    mag_files = [os.path.join(checkpoint_output, f"{mag}.fa.gz") for mag in MAGS]
+    mag_files.extend([os.path.join(checkpoint_output, f"{mag}.tsv") for mag in MAGS])
     return mag_files
 
 rule cleanup_mags:
