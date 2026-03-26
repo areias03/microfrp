@@ -44,10 +44,8 @@ def get_reconstructions(wildcards):
     mag_files = glob.glob(os.path.join(checkpoint_output, "*.fa.gz"))
     
     if mag_files:
-        # Extract MAG IDs from filenames (remove .fa.gz extension)
         mag_ids = [os.path.basename(f).replace(".fa.gz", "") for f in mag_files]
     else:
-        # Fallback to MAGS list for dry-run or when directory doesn't exist yet
         mag_ids = MAGS
     
     return expand("results/reconstructions/{mag}.xml", mag=mag_ids)
@@ -100,7 +98,6 @@ def get_mag_files_to_cleanup(wildcards):
     mag_files.extend(glob.glob(os.path.join(checkpoint_output, "*.tsv")))
     
     if not mag_files:
-        # Fallback for dry-run
         mag_files = [os.path.join(checkpoint_output, f"{mag}.fa.gz") for mag in MAGS]
         mag_files.extend([os.path.join(checkpoint_output, f"{mag}.tsv") for mag in MAGS])
     
@@ -133,7 +130,9 @@ rule simulate:
         mes = "results/mes.csv",
         models = directory("results/models")
     resources:
-	    mem_mb=192000
+            mem_mb=192000
+    threads:
+        24
     params:
         growth_media= config["growth_media"],
         tradeoff= config["tradeoff"]
