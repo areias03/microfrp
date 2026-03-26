@@ -14,6 +14,7 @@ gurobi = ">=12.0.3,<13"
 snakemake = ">=7.32.4,<8"
 polars = ">=1.33.1,<2"
 cobra = ">=0.28.0,<1"
+carveme = ">=1.6.6,<2"
 
 [pypi-dependencies]
 micom = ">=0.37.1, <0.38"
