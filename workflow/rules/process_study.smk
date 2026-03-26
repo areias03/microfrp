@@ -85,10 +85,9 @@ rule combine_manifests:
 
 
 def get_mag_files_to_cleanup(wildcards):
-    # Force checkpoint to complete, then list files based on MAGS since we filter
+    # Only list the .fa.gz files as dependencies (tsv files are side effects)
     checkpoint_output = checkpoints.download_mags.get(**wildcards).output.mags_dir
     mag_files = [os.path.join(checkpoint_output, f"{mag}.fa.gz") for mag in MAGS]
-    mag_files.extend([os.path.join(checkpoint_output, f"{mag}.tsv") for mag in MAGS])
     return mag_files
 
 
@@ -103,6 +102,16 @@ rule cleanup_mags:
         mem_mb=8000
     run:
         import os
+        import glob
+        checkpoint_output = checkpoints.download_mags.get().output.mags_dir
+        
+        # Clean up all .fa.gz files
         for mag_file in input.mags:
             if os.path.exists(mag_file):
                 os.remove(mag_file)
+        
+        # Clean up any .tsv files that were generated (not listed as inputs)
+        tsv_files = glob.glob(os.path.join(checkpoint_output, "*.tsv"))
+        for tsv_file in tsv_files:
+            if os.path.exists(tsv_file):
+                os.remove(tsv_file)
