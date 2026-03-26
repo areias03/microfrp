@@ -199,4 +199,4 @@ rule combine_classifications:
     resources:
             mem_mb=8000
     shell:
-        "python scripts/combine_classifications.py {input.uptake_tendency} {input.cooperation_alignment} {input.provisioning_bias} -o {output}"
+        "python scripts/combine_classifications.py {input.uptake_tendency} {input.cooperation_alignment} {input.provisioning_bias} {input.interaction_synergy} -o {output}"
