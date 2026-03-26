@@ -177,11 +177,23 @@ rule provisioning_bias:
     shell:
         "python scripts/provisioning_bias.py {input.interactions} -o {output}"
 
+rule interaction_synergy:
+    input:
+        cooperation_alignment = "results/cooperation_alignment.csv",
+        provisioning_bias = "results/provisioning_bias.csv",
+    output:
+        "results/interaction_synergy.csv"
+    resources:
+            mem_mb=8000
+    shell:
+        "python scripts/interaction_synergy.py -c {input.cooperation_alignment} -p {input.provisioning_bias} -o {output}"
+
 rule combine_classifications:
     input:
         uptake_tendency = "results/uptake_tendency.csv",
         cooperation_alignment = "results/cooperation_alignment.csv",
-	provisioning_bias = "results/provisioning_bias.csv",
+        provisioning_bias = "results/provisioning_bias.csv",
+        interaction_synergy = "results/interaction_synergy.csv",
     output:
         "results/functional_roles.csv"
     resources:
