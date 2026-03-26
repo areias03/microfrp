@@ -19,32 +19,32 @@ def interaction_synergy(
         .with_columns(
             [
                 pl.when(
-                    (pl.col("cooperation_alignment") == "Cooperative")
+                    (pl.col("cooperation_alignment") == "High")
                     & (pl.col("provisioning_bias") == "Provider")
                 )
                 .then(pl.lit("Primary"))
                 .when(
-                    (pl.col("cooperation_alignment") == "Cooperative")
+                    (pl.col("cooperation_alignment") == "High")
                     & (pl.col("provisioning_bias") == "Balanced")
                 )
                 .then(pl.lit("Mutualistic"))
                 .when(
-                    (pl.col("cooperation_alignment") == "Cooperative")
+                    (pl.col("cooperation_alignment") == "High")
                     & (pl.col("provisioning_bias") == "Receiver")
                 )
                 .then(pl.lit("Dependent"))
                 .when(
-                    (pl.col("cooperation_alignment") == "Uncooperative")
+                    (pl.col("cooperation_alignment") == "Low")
                     & (pl.col("provisioning_bias") == "Provider")
                 )
                 .then(pl.lit("Marginal"))
                 .when(
-                    (pl.col("cooperation_alignment") == "Uncooperative")
+                    (pl.col("cooperation_alignment") == "Low")
                     & (pl.col("provisioning_bias") == "Balanced")
                 )
                 .then(pl.lit("Neutral"))
                 .when(
-                    (pl.col("cooperation_alignment") == "Uncooperative")
+                    (pl.col("cooperation_alignment") == "Low")
                     & (pl.col("provisioning_bias") == "Receiver")
                 )
                 .then(pl.lit("Passive"))
