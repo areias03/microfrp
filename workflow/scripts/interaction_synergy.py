@@ -22,7 +22,7 @@ def interaction_synergy(
                     (pl.col("cooperation_alignment") == "Cooperative")
                     & (pl.col("provisioning_bias") == "Provider")
                 )
-                .then(pl.lit("Altruistic"))
+                .then(pl.lit("Primary"))
                 .when(
                     (pl.col("cooperation_alignment") == "Cooperative")
                     & (pl.col("provisioning_bias") == "Balanced")
@@ -37,7 +37,7 @@ def interaction_synergy(
                     (pl.col("cooperation_alignment") == "Uncooperative")
                     & (pl.col("provisioning_bias") == "Provider")
                 )
-                .then(pl.lit("Minimal"))
+                .then(pl.lit("Marginal"))
                 .when(
                     (pl.col("cooperation_alignment") == "Uncooperative")
                     & (pl.col("provisioning_bias") == "Balanced")
