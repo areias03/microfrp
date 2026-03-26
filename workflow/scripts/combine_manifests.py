@@ -1,18 +1,3 @@
-#!/usr/bin/env python3
-"""
-Combine multiple TSV manifest files into a single TSV using polars.
-
-Usage:
-    python scripts/combine_manifests.py OUTPUT INPUT [INPUT...]
-Example:
-    python scripts/combine_manifests.py results/manifests/all_samples.tsv results/manifests/sample1.tsv results/manifests/sample2.tsv
-
-Notes:
-- Columns are aligned by name; missing columns are filled with nulls.
-- Files are read in the order passed on the command line.
-- Use --dedup to remove exact duplicate rows after concatenation.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -22,41 +7,33 @@ from pathlib import Path
 import polars as pl
 
 
-def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(
+def main() -> None:
+    parser = argparse.ArgumentParser(
         description="Combine TSV manifest files into one TSV using polars."
     )
-    p.add_argument("output", help="Path to the combined output TSV")
-    p.add_argument(
+    parser.add_argument("output", help="Path to the combined output TSV")
+    parser.add_argument(
         "inputs",
         nargs="+",
         help="Input manifest TSV files (provide one or more, in desired order)",
     )
-    p.add_argument(
+    parser.add_argument(
         "--dedup",
         action="store_true",
         help="Drop exact duplicate rows from the combined manifest",
     )
-    return p.parse_args()
-
-
-def read_manifest(path: Path) -> pl.DataFrame:
-    return pl.read_csv(path)
-
-
-def main() -> None:
-    args = parse_args()
+    args = parser.parse_args()
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     dfs = []
-    for p in args.inputs:
-        p_path = Path(p)
+    for parser in args.inputs:
+        p_path = Path(parser)
         if not p_path.exists():
             print(f"Warning: input file not found, skipping: {p_path}", file=sys.stderr)
             continue
         try:
-            df = read_manifest(p_path)
+            df = pl.read_csv(p_path)
         except Exception as e:
             print(f"Error reading '{p_path}': {e}", file=sys.stderr)
             sys.exit(1)

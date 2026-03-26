@@ -37,38 +37,30 @@ checkpoint download_mags:
     run:
         import subprocess
         import glob
-        
-        # Download and extract all MAGs
+
         shell("mkdir -p {output.mags_dir}")
         shell("wget -O - https://swifter.embl.de/~fullam/spire/compiled/{params.item_id}_spire_v1_MAGs.tar | tar -xf - -C {output.mags_dir} --strip-components=1")
-        
-        # Get all downloaded files
+
         all_files = glob.glob(os.path.join(output.mags_dir, "*.fa.gz"))
         all_files.extend(glob.glob(os.path.join(output.mags_dir, "*.tsv")))
-        
-        # Filter: keep only files for MAGs in our list
+
         mags_to_keep_set = set(params.mags_to_keep)
         for filepath in all_files:
             filename = os.path.basename(filepath)
-            # Extract MAG ID (remove .fa.gz or .tsv extension)
             mag_id = filename.replace(".fa.gz", "").replace(".tsv", "")
-            
+
             if mag_id not in mags_to_keep_set:
-                # Remove files not in our MAGS list
                 os.remove(filepath)
                 print(f"Removed {filename} - not in MAGS list")
-        
-        # Report what was kept
+
         kept_files = glob.glob(os.path.join(output.mags_dir, "*.fa.gz"))
         print(f"Kept {len(kept_files)} MAG files out of {len(all_files)} downloaded")
 
 def get_mag_input(wildcards):
-    # This function ensures the checkpoint is completed before accessing the file
     checkpoint_output = checkpoints.download_mags.get(**wildcards).output.mags_dir
     return os.path.join(checkpoint_output, f"{wildcards.mag}.fa.gz")
 
 def get_reconstructions(wildcards):
-    # Force checkpoint to complete, then use MAGS list since we filter to only keep those
     checkpoints.download_mags.get(**wildcards)
     return expand("results/reconstructions/{mag}.xml", mag=MAGS)
 
@@ -152,8 +144,6 @@ rule simulate:
     params:
         growth_media= config["growth_media"],
         tradeoff= config["tradeoff"]
-    threads:
-        len(SAMPLES)
     shell:
         "python scripts/simulation.py {input.manifest} -g {output.growth_rates} -e {output.exchanges} -a {output.annotations} -i {output.interactions} -m {output.mes} -t {threads} --models {output.models} --growth_medium {params.growth_media} --tradeoff {params.tradeoff}"
 
