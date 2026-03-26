@@ -11,9 +11,6 @@ study = spirepy.Study(ITEM_ID)
 SAMPLES = [s.id for s in study.get_samples()]
 MAGS = study.get_mags()["genome_id"].to_list()
 
-print("Samples to process:", SAMPLES)
-print("MAGS to process:", MAGS)
-
 rule functional_roles:
     input:
         "results/manifest.csv",
@@ -27,31 +24,37 @@ rule functional_roles:
         "results/models",
         "results/functional_roles.tsv",
 
-rule download_mags:
-    input:
-	directory("results/mags")
+checkpoint download_mags:
     output:
-        "results/mags/{mag}.fa.gz"
+        directory("results/mags")
     resources:
-            mem_mb=8000
+        mem_mb=8000
     params:
-	item_id=ITEM_ID
+        item_id=ITEM_ID
     shell:
-        "mkdir {input} && wget https://swifter.embl.de/~fullam/spire/compiled/{params.item_id}_spire_v1_MAGs.tar -xz -O - | tar -xJ -C results/mags"
+        """
+        mkdir -p {output}
+        wget -O - https://swifter.embl.de/~fullam/spire/compiled/{params.item_id}_spire_v1_MAGs.tar | tar -xf - -C {output} --strip-components=1
+        """
 
-rule download_mags_done:
-    input:
-        expand("results/mags/{mag}.fa.gz", mag=MAGS)
-    output:
-        touch("results/mags/all.done")
-    resources:
-            mem_mb=8000
-    run:
-        pass
+def get_reconstructions(wildcards):
+    import glob
+    import os
+    checkpoint_output = checkpoints.download_mags.get(**wildcards).output[0]
+    mag_files = glob.glob(os.path.join(checkpoint_output, "*.fa.gz"))
+    
+    if mag_files:
+        # Extract MAG IDs from filenames (remove .fa.gz extension)
+        mag_ids = [os.path.basename(f).replace(".fa.gz", "") for f in mag_files]
+    else:
+        # Fallback to MAGS list for dry-run or when directory doesn't exist yet
+        mag_ids = MAGS
+    
+    return expand("results/reconstructions/{mag}.xml", mag=mag_ids)
 
 rule generate_sample_manifest:
     input:
-        "results/mags/all.done"
+        "results/reconstructions/all.done"
     output:
         temp("results/manifests/{sample}.csv"),
     resources:
@@ -81,7 +84,7 @@ rule reconstruct:
 
 rule reconstruct_done:
     input:
-        expand("results/reconstructions/{mag}.xml", mag=MAGS)
+        get_reconstructions
     output:
         touch("results/reconstructions/all.done")
     resources:
@@ -89,24 +92,34 @@ rule reconstruct_done:
     run:
         pass
 
+def get_mag_files_to_cleanup(wildcards):
+    import glob
+    import os
+    checkpoint_output = checkpoints.download_mags.get(**wildcards).output[0]
+    mag_files = glob.glob(os.path.join(checkpoint_output, "*.fa.gz"))
+    mag_files.extend(glob.glob(os.path.join(checkpoint_output, "*.tsv")))
+    
+    if not mag_files:
+        # Fallback for dry-run
+        mag_files = [os.path.join(checkpoint_output, f"{mag}.fa.gz") for mag in MAGS]
+        mag_files.extend([os.path.join(checkpoint_output, f"{mag}.tsv") for mag in MAGS])
+    
+    return mag_files
+
 rule cleanup_mags:
     input:
-        "results/manifest.csv",
-        "results/reconstructions/all.done"
+        manifest="results/manifest.csv",
+        reconstructions="results/reconstructions/all.done",
+        mags=get_mag_files_to_cleanup
     output:
         touch("results/.mags.cleaned")
     resources:
 	    mem_mb=8000
     run:
         import os
-	import shutil
-        for mag in MAGS:
-            p = f"results/mags/{mag}.fa.gz"
-            if os.path.exists(p):
-                os.remove(p)
-            p = f"results/mags/{mag}.tsv"
-            if os.path.exists(p):
-                os.remove(p)
+        for mag_file in input.mags:
+            if os.path.exists(mag_file):
+                os.remove(mag_file)
 
 rule simulate:
     input:
