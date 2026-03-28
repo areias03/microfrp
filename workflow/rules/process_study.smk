@@ -46,7 +46,7 @@ rule reconstruct:
     output:
         "results/reconstructions/{mag}.xml"
     resources:
-        mem_mb=8000
+        mem_mb=20000
     shell:
         "carve --dna {input} -g M9 --solver cplex --output {output}"
 
