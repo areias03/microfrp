@@ -79,9 +79,11 @@ rule combine_manifests:
     output:
         "results/manifest.csv"
     resources:
-        mem_mb=8000
+        mem_mb=16000
+    params:
+        chunk_size=100
     shell:
-        "python scripts/combine_manifests.py {output} {input}"
+        "python scripts/combine_manifests.py {output} --chunk-size {params.chunk_size} {input}"
 
 
 def get_mag_files_to_cleanup(wildcards):
