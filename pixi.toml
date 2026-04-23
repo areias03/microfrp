@@ -9,16 +9,17 @@ version = "0.1.0"
 test = "cd workflow && snakemake -n"
 
 [dependencies]
-python = "==3.9"
+python = "==3.10"
 gurobi = ">=12.0.3,<13"
 snakemake = ">=7.32.4,<8"
 polars = ">=1.33.1,<2"
 cobra = ">=0.28.0,<1"
 carveme = ">=1.6.6,<2"
+gapseq = ">=1.4.0,<2"
 
 [pypi-dependencies]
 micom = ">=0.37.1, <0.38"
-cplex = "==22.1.1.0"
 snakemake-executor-plugin-cluster-generic = ">=1.0.3, <2"
 spirepy = { git = "https://github.com/BigDataBiology/SPIREpy.git" }
 ipython = ">=8.18.1, <9"
+cplex = "==22.1.1.0"
