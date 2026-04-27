@@ -8,7 +8,7 @@ def provisioning_bias(
     taxa: Union[None, str] = None,
 ) -> pl.DataFrame:
     """
-    Calculate provisioning bias classifications for taxa based on exchange fluxes and MES.
+    Calculate provisioning bias classifications for taxa based on interactions.
 
     Parameters
     ----------
@@ -54,7 +54,7 @@ def provisioning_bias(
         .with_columns(
             [
                 pl.when((pl.col("provided_count") + pl.col("received_count")) == 0)
-                .then(None)
+                .then(pl.lit(0))
                 .otherwise(pl.col("provisioning_bias_score"))
                 .alias("provisioning_bias_score")
             ]
