@@ -91,27 +91,27 @@ def get_mag_files_to_cleanup(wildcards):
     return mag_files
 
 
-rule cleanup_mags:
-    input:
-        manifest="results/manifest.csv",
-        reconstructions="results/reconstructions/all.done",
-        mags=get_mag_files_to_cleanup
-    output:
-        touch("results/.mags.cleaned")
-    resources:
-        mem_mb=8000
-    run:
-        import os
-        import glob
-        checkpoint_output = checkpoints.download_mags.get().output.mags_dir
-        
-        # Clean up all .fa.gz files
-        for mag_file in input.mags:
-            if os.path.exists(mag_file):
-                os.remove(mag_file)
-        
-        # Clean up any .tsv files that were generated (not listed as inputs)
-        tsv_files = glob.glob(os.path.join(checkpoint_output, "*.tsv"))
-        for tsv_file in tsv_files:
-            if os.path.exists(tsv_file):
-                os.remove(tsv_file)
+# rule cleanup_mags:
+#     input:
+#         manifest="results/manifest.csv",
+#         reconstructions="results/reconstructions/all.done",
+#         mags=get_mag_files_to_cleanup
+#     output:
+#         touch("results/.mags.cleaned")
+#     resources:
+#         mem_mb=8000
+#     run:
+#         import os
+#         import glob
+#         checkpoint_output = checkpoints.download_mags.get().output.mags_dir
+#
+#         # Clean up all .fa.gz files
+#         for mag_file in input.mags:
+#             if os.path.exists(mag_file):
+#                 os.remove(mag_file)
+#
+#         # Clean up any .tsv files that were generated (not listed as inputs)
+#         tsv_files = glob.glob(os.path.join(checkpoint_output, "*.tsv"))
+#         for tsv_file in tsv_files:
+#             if os.path.exists(tsv_file):
+#                 os.remove(tsv_file)

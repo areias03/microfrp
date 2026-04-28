@@ -37,7 +37,7 @@ rule functional_roles:
     input:
         "results/manifest.csv",
 	"results/reconstructions/all.done",
-        "results/.mags.cleaned",
+        # "results/.mags.cleaned",
         "results/growth_rates.csv",
         "results/exchanges.csv",
         "results/annotations.csv",
