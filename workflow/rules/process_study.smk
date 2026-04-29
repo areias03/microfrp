@@ -45,10 +45,25 @@ rule reconstruct:
         get_mag_input
     output:
         "results/reconstructions/{mag}.xml"
+    params:
+        workdir=lambda wc: os.path.abspath(f"results/reconstructions/.gapseq/{wc.mag}"),
+        output_xml=lambda wc: os.path.abspath(f"results/reconstructions/{wc.mag}.xml"),
+        gapseq_medium=config.get("gapseq_medium", "")
     resources:
         mem_mb=20000
     shell:
-        "carve --dna {input} -g M9 --solver cplex --output {output}"
+        r"""
+        set -euo pipefail
+        mkdir -p {params.workdir}
+        cp {input} {params.workdir}/{wildcards.mag}.fa.gz
+        cd {params.workdir}
+        if [ -n "{params.gapseq_medium}" ]; then
+            gapseq doall {wildcards.mag}.fa.gz {params.gapseq_medium}
+        else
+            gapseq doall {wildcards.mag}.fa.gz
+        fi
+        cp {wildcards.mag}.xml {params.output_xml}
+        """
 
 
 rule reconstruct_done:
