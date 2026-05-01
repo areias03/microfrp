@@ -1,9 +1,10 @@
 import argparse
 
 import pandas as pd
-from micom.interaction import MES, interactions
-from micom.qiime_formats import load_qiime_medium
+from micom.interaction import MES
 from micom.workflows import build, grow
+
+from interactions import interactions
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -32,7 +33,7 @@ if __name__ == "__main__":
         threads=int(args.threads),
         solver="gurobi",
     )
-    medium = load_qiime_medium(args.medium)
+    medium = pd.read_csv(args.medium)
     res = grow(
         manifest,
         model_folder=args.models,
