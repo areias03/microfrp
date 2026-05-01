@@ -1,4 +1,4 @@
-item: "Minot_2013_gut_phage" # id for the SPIRE item
+item: "Lloyd-Price_2019_HMP2IBD" # id for the SPIRE item
 
 tradeoff: 0.8
 growth_media: "data/western_diet_gut.csv"
