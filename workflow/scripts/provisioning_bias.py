@@ -73,11 +73,12 @@ def provisioning_bias(
             [
                 "focal",
                 "provisioning_bias",
+                "provisioning_bias_score",
             ]
         )
     )
 
-    return result.rename({"focal": "taxon"})
+    return result.rename({"focal": "taxon", "provisioning_bias_score": "pb_score"})
 
 
 if __name__ == "__main__":
@@ -97,7 +98,13 @@ if __name__ == "__main__":
         "-o",
         "--output",
         type=str,
-        help="Path to output CSV file for scores and classifications.",
+        help="Path to output CSV file for classifications.",
+    )
+    parser.add_argument(
+        "-s",
+        "--scores",
+        type=str,
+        help="Path to output CSV file for scores.",
     )
     args = parser.parse_args()
 
@@ -106,4 +113,7 @@ if __name__ == "__main__":
     classifications = provisioning_bias(
         interactions=interactions,
         taxa=args.taxa,
-    ).write_csv(args.output)
+    )
+
+    classifications.select(["taxon", "provisioning_bias"]).write_csv(args.output)
+    classifications.select(["taxon", "pb_score"]).write_csv(args.scores)

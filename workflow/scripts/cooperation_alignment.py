@@ -77,7 +77,9 @@ def cooperation_alignment(
             ]
         )
     )
-    return result.rename({"focal": "taxon"}).select(["taxon", "cooperation_alignment"])
+    return result.rename({"focal": "taxon", "log_ratio": "ca_score"}).select(
+        ["taxon", "ca_score", "cooperation_alignment"]
+    )
 
 
 if __name__ == "__main__":
@@ -97,7 +99,13 @@ if __name__ == "__main__":
         "-o",
         "--output",
         type=str,
-        help="Path to output CSV file for scores and classifications.",
+        help="Path to output CSV file for classifications.",
+    )
+    parser.add_argument(
+        "-s",
+        "--scores",
+        type=str,
+        help="Path to output CSV file for scores.",
     )
     args = parser.parse_args()
 
@@ -106,4 +114,7 @@ if __name__ == "__main__":
     classifications = cooperation_alignment(
         interactions=interactions,
         taxa=args.taxa,
-    ).write_csv(args.output)
+    )
+
+    classifications.select(["taxon", "cooperation_alignment"]).write_csv(args.output)
+    classifications.select(["taxon", "ca_score"]).write_csv(args.scores)

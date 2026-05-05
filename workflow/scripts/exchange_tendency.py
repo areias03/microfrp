@@ -50,19 +50,19 @@ def exchange_tendency(
     exchanges = exchanges.with_columns(reaction_score=pl.col("flux") * pl.col("MES"))
 
     exchanges = exchanges.group_by("taxon").agg(
-        cp_score=pl.col("reaction_score").sum(),
+        et_score=pl.col("reaction_score").sum(),
     )
 
     classifications = exchanges.with_columns(
-        pl.when(pl.col("cp_score") >= pl.col("cp_score").quantile(0.75))
+        pl.when(pl.col("et_score") >= pl.col("et_score").quantile(0.75))
         .then(pl.lit("Producer"))
-        .when(pl.col("cp_score") <= pl.col("cp_score").quantile(0.25))
+        .when(pl.col("et_score") <= pl.col("et_score").quantile(0.25))
         .then(pl.lit("Consumer"))
         .otherwise(pl.lit("Mixed"))
         .alias("exchange_tendency")
     )
 
-    return classifications.select(["taxon", "exchange_tendency"])
+    return classifications.select(["taxon", "et_score", "exchange_tendency"])
 
 
 if __name__ == "__main__":
@@ -85,6 +85,12 @@ if __name__ == "__main__":
         type=str,
         help="Path to output CSV file for classifications.",
     )
+    parser.add_argument(
+        "-s",
+        "--scores",
+        type=str,
+        help="Path to output CSV file for scores.",
+    )
     args = parser.parse_args()
 
     exchanges = pl.read_csv(args.exchanges)
@@ -94,4 +100,7 @@ if __name__ == "__main__":
         exchanges=exchanges,
         mes=mes,
         taxa=args.taxa,
-    ).write_csv(args.output)
+    )
+
+    classifications.select(["taxon", "exchange_tendency"]).write_csv(args.output)
+    classifications.select(["taxon", "et_score"]).write_csv(args.scores)
