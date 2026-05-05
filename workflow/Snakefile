@@ -44,6 +44,7 @@ rule functional_roles:
         "results/interactions.csv",
         "results/mes.csv",
         "results/models",
+        "results/combined_scores.csv",
         "results/functional_roles.tsv",
 
 
@@ -73,31 +74,34 @@ rule exchange_tendency:
         exchanges = "results/exchanges.csv",
         mes = "results/mes.csv"
     output:
-        "results/exchange_tendency.csv"
+        classifications = "results/exchange_tendency.csv",
+        scores = "results/exchange_tendency_scores.csv"
     resources:
 	    mem_mb=8000
     shell:
-        "python scripts/exchange_tendency.py {input.exchanges} {input.mes} -o {output}"
+        "python scripts/exchange_tendency.py {input.exchanges} {input.mes} -o {output.classifications} -s {output.scores}"
 
 rule cooperation_alignment:
     input:
         interactions = "results/interactions.csv",
     output:
-        "results/cooperation_alignment.csv"
+        classifications="results/cooperation_alignment.csv",
+        scores="results/cooperation_alignment_scores.csv"
     resources:
             mem_mb=8000
     shell:
-        "python scripts/cooperation_alignment.py {input.interactions} -o {output}"
+        "python scripts/cooperation_alignment.py {input.interactions} -o {output.classifications} -s {output.scores}"
 
 rule provisioning_bias:
     input:
         interactions = "results/interactions.csv",
     output:
-        "results/provisioning_bias.csv"
+        classifications="results/provisioning_bias.csv",
+        scores="results/provisioning_bias_scores.csv"
     resources:
             mem_mb=8000
     shell:
-        "python scripts/provisioning_bias.py {input.interactions} -o {output}"
+        "python scripts/provisioning_bias.py {input.interactions} -o {output.classifications} -s {output.scores}"
 
 rule interaction_synergy:
     input:
@@ -109,6 +113,18 @@ rule interaction_synergy:
             mem_mb=8000
     shell:
         "python scripts/interaction_synergy.py -c {input.cooperation_alignment} -p {input.provisioning_bias} -o {output}"
+
+rule combine_scores:
+    input:
+        exchange_tendency = "results/exchange_tendency_scores.csv",
+        cooperation_alignment = "results/cooperation_alignment_scores.csv",
+        provisioning_bias = "results/provisioning_bias_scores.csv"
+    output:
+        "results/combined_scores.csv"
+    resources:
+            mem_mb=8000
+    shell:
+        "python scripts/combine_scores.py {input.exchange_tendency} {input.cooperation_alignment} {input.provisioning_bias} -o {output}"
 
 rule combine_classifications:
     input:
