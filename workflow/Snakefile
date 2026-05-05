@@ -44,7 +44,7 @@ rule functional_roles:
         "results/interactions.csv",
         "results/mes.csv",
         "results/models",
-        "results/combined_scores.csv",
+        "results/combined_scores.tsv",
         "results/functional_roles.tsv",
 
 
@@ -120,7 +120,7 @@ rule combine_scores:
         cooperation_alignment = "results/cooperation_alignment_scores.csv",
         provisioning_bias = "results/provisioning_bias_scores.csv"
     output:
-        "results/combined_scores.csv"
+        "results/combined_scores.tsv"
     resources:
             mem_mb=8000
     shell:
