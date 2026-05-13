@@ -17,7 +17,9 @@ if __name__ == "__main__":
 
     dfs = [pl.read_csv(file) for file in args.files]
     df_joined = dfs[0]
+    print(df_joined)
     for df in dfs[1:]:
-        df_joined = df_joined.join(df, on="taxon").write_csv(
-            args.output, separator="\t"
-        )
+        print(df)
+        df_joined = df_joined.join(df, on="taxon")
+
+    df_joined.write_csv(args.output, separator="\t")
