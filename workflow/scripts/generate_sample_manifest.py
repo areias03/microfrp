@@ -32,21 +32,24 @@ def generate_manifest(sample: Sample):
     manif = []
     abun = get_abundances(sample)
     for genome in sample.get_mags().iter_rows(named=True):
-        manif.append(
-            [
-                genome["genome_id"],
-                genome["domain"],
-                genome["phylum"],
-                genome["class"],
-                genome["order"],
-                genome["family"],
-                genome["genus"],
-                genome["species"],
-                f"results/reconstructions/{genome['genome_id']}.xml",
-                genome["derived_from_sample"],
-                abun[f"results/mags/{genome['genome_id']}.fa.gz"],
-            ]
-        )
+        try:
+            manif.append(
+                [
+                    genome["genome_id"],
+                    genome["domain"],
+                    genome["phylum"],
+                    genome["class"],
+                    genome["order"],
+                    genome["family"],
+                    genome["genus"],
+                    genome["species"],
+                    f"results/reconstructions/{genome['genome_id']}.xml",
+                    genome["derived_from_sample"],
+                    abun[f"results/mags/{genome['genome_id']}.fa.gz"],
+                ]
+            )
+        except KeyError:
+            pass
 
     manifest = pl.DataFrame(
         manif,
