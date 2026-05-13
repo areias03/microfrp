@@ -43,7 +43,7 @@ def main() -> None:
         print("No valid input files were provided/read. Exiting.", file=sys.stderr)
         sys.exit(1)
 
-    combined = pl.concat(dfs)
+    combined = pl.concat(dfs, how="vertical_relaxed")
 
     if args.dedup:
         combined = combined.unique()
