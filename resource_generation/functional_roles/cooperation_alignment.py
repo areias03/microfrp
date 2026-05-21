@@ -73,9 +73,9 @@ def cooperation_alignment(
         )
         .with_columns(
             [
-                pl.when(pl.col("bounded_ratio") >= pl.col("log_ratio").mean())
+                pl.when(pl.col("bounded_ratio") >= pl.col("bounded_ratio").mean())
                 .then(pl.lit("High"))
-                .when(pl.col("bounded_ratio") < pl.col("log_ratio").mean())
+                .when(pl.col("bounded_ratio") < pl.col("bounded_ratio").mean())
                 .then(pl.lit("Low"))
                 .alias("cooperation_alignment")
             ]
