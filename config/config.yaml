@@ -1,5 +1,5 @@
 item: "Lloyd-Price_2019_HMP2IBD" # id for the SPIRE item
 
 tradeoff: 0.8
-growth_media: "data/western_diet_gut.csv"
+growth_media: "config/western_diet_gut.csv"
 gapseq_medium: ""

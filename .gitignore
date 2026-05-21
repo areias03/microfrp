@@ -206,9 +206,12 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-#Snakemake workflow results
-workflow/results/
+#Workflow specific
 .snakemake/
+external_data/*
+intermediate_outputs/*
+results/*
+analysis/data/*
 
 # pixi environments
 .pixi/*

@@ -4,7 +4,7 @@ import pandas as pd
 from micom.interaction import MES
 from micom.workflows import build, grow
 
-from interactions import interactions
+from .interactions import interactions
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

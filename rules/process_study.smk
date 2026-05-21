@@ -1,7 +1,7 @@
 checkpoint download_mags:
     output:
-        mags_dir=directory("results/mags"),
-        done_flag=touch("results/.mags_downloaded")
+        mags_dir=directory("external_data/mags"),
+        done_flag=touch("external_data/.mags_downloaded")
     resources:
         mem_mb=8000
     params:
@@ -37,17 +37,17 @@ def get_mag_input(wildcards):
 
 def get_reconstructions(wildcards):
     checkpoints.download_mags.get(**wildcards)
-    return expand("results/reconstructions/{mag}.xml", mag=MAGS)
+    return expand("intermediate_outputs/reconstructions/{mag}.xml", mag=MAGS)
 
 
 rule reconstruct:
     input:
         get_mag_input
     output:
-        "results/reconstructions/{mag}.xml"
+        "intermediate_outputs/reconstructions/{mag}.xml"
     params:
-        workdir=lambda wc: os.path.abspath(f"results/reconstructions/.gapseq/{wc.mag}"),
-        output_xml=lambda wc: os.path.abspath(f"results/reconstructions/{wc.mag}.xml"),
+        workdir=lambda wc: os.path.abspath(f"intermediate_outputs/reconstructions/.gapseq/{wc.mag}"),
+        output_xml=lambda wc: os.path.abspath(f"intermediate_outputs/reconstructions/{wc.mag}.xml"),
         gapseq_medium=config.get("gapseq_medium", "")
     resources:
         mem_mb=20000
@@ -70,7 +70,7 @@ rule reconstruct_done:
     input:
         get_reconstructions
     output:
-        touch("results/reconstructions/all.done")
+        touch("intermediate_outputs/reconstructions/all.done")
     resources:
         mem_mb=8000
     run:
@@ -79,54 +79,21 @@ rule reconstruct_done:
 
 rule generate_sample_manifest:
     input:
-        "results/reconstructions/all.done"
+        "intermediate_outputs/reconstructions/all.done"
     output:
-        temp("results/manifests/{sample}.csv"),
+        temp("intermediate_outputs/manifests/{sample}.csv"),
     resources:
         mem_mb=8000
     shell:
-        "python scripts/generate_sample_manifest.py {wildcards.sample} -o {output[0]}"
+        "python resource_generation/manifest_generation/generate_sample_manifest.py {wildcards.sample} -o {output[0]}"
 
 
 rule combine_manifests:
     input:
-        expand("results/manifests/{sample}.csv", sample=SAMPLES)
+        expand("intermediate_outputs/manifests/{sample}.csv", sample=SAMPLES)
     output:
-        "results/manifest.csv"
+        "intermediate_outputs/simulation/manifest.csv"
     resources:
         mem_mb=8000
     shell:
-        "python scripts/combine_manifests.py {output} {input}"
-
-
-def get_mag_files_to_cleanup(wildcards):
-    # Only list the .fa.gz files as dependencies (tsv files are side effects)
-    checkpoint_output = checkpoints.download_mags.get(**wildcards).output.mags_dir
-    mag_files = [os.path.join(checkpoint_output, f"{mag}.fa.gz") for mag in MAGS]
-    return mag_files
-
-
-# rule cleanup_mags:
-#     input:
-#         manifest="results/manifest.csv",
-#         reconstructions="results/reconstructions/all.done",
-#         mags=get_mag_files_to_cleanup
-#     output:
-#         touch("results/.mags.cleaned")
-#     resources:
-#         mem_mb=8000
-#     run:
-#         import os
-#         import glob
-#         checkpoint_output = checkpoints.download_mags.get().output.mags_dir
-#
-#         # Clean up all .fa.gz files
-#         for mag_file in input.mags:
-#             if os.path.exists(mag_file):
-#                 os.remove(mag_file)
-#
-#         # Clean up any .tsv files that were generated (not listed as inputs)
-#         tsv_files = glob.glob(os.path.join(checkpoint_output, "*.tsv"))
-#         for tsv_file in tsv_files:
-#             if os.path.exists(tsv_file):
-#                 os.remove(tsv_file)
+        "python resource_generation/manifest_generation/combine_manifests.py {output} {input}"
