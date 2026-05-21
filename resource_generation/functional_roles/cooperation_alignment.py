@@ -53,15 +53,19 @@ def cooperation_alignment(
         )
         .with_columns(
             [
-                ((pl.col("positive_count") / pl.col("co_consumed_count")).log()).alias(
-                    "log_ratio"
-                ),
+                (
+                    pl.col("positive_count")
+                    / (pl.col("positive_count") + pl.col("co_consumed_count"))
+                ).alias("bounded_ratio"),
+                # ((pl.col("positive_count") / pl.col("co_consumed_count")).log()).alias(
+                #     "log_ratio"
+                # ),
             ]
         )
         .select(
             [
                 "focal",
-                "log_ratio",
+                "bounded_ratio",
                 "provided_count",
                 "received_count",
                 "co_consumed_count",
@@ -69,15 +73,15 @@ def cooperation_alignment(
         )
         .with_columns(
             [
-                pl.when(pl.col("log_ratio") >= pl.col("log_ratio").quantile(0.5))
+                pl.when(pl.col("bounded_ratio") >= pl.col("log_ratio").mean())
                 .then(pl.lit("High"))
-                .when(pl.col("log_ratio") < pl.col("log_ratio").quantile(0.5))
+                .when(pl.col("bounded_ratio") < pl.col("log_ratio").mean())
                 .then(pl.lit("Low"))
                 .alias("cooperation_alignment")
             ]
         )
     )
-    return result.rename({"focal": "taxon", "log_ratio": "ca_score"}).select(
+    return result.rename({"focal": "taxon", "bounded_ratio": "ca_score"}).select(
         ["taxon", "ca_score", "cooperation_alignment"]
     )
 
