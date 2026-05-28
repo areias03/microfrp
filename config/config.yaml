@@ -1,5 +1,6 @@
 item: "Lloyd-Price_2019_HMP2IBD" # id for the SPIRE item
 
+reconstruction_tool: "carve" # the tool used for reconstruction, either "carve" or "gapseq"
 tradeoff: 0.8
 growth_media: "config/western_diet_gut.csv"
-gapseq_medium: ""
+gapseq_medium: "" # if using gapseq, the medium to use for gapfilling

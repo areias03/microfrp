@@ -1,3 +1,5 @@
+configfile: "config/config.yaml"
+
 checkpoint download_mags:
     output:
         mags_dir=directory("external_data/mags"),
@@ -39,31 +41,46 @@ def get_reconstructions(wildcards):
     checkpoints.download_mags.get(**wildcards)
     return expand("intermediate_outputs/reconstructions/{mag}.xml", mag=MAGS)
 
+if config.get("reconstruction_tool" == "gapseq"):
+    rule reconstruct:
+        input:
+            get_mag_input
+        output:
+            "intermediate_outputs/reconstructions/{mag}.xml"
+        params:
+            workdir=lambda wc: os.path.abspath(f"intermediate_outputs/reconstructions/.gapseq/{wc.mag}"),
+            output_xml=lambda wc: os.path.abspath(f"intermediate_outputs/reconstructions/{wc.mag}.xml"),
+            gapseq_medium=config.get("gapseq_medium", "")
+        resources:
+            mem_mb=20000
+        shell:
+            r"""
+            set -euo pipefail
+            mkdir -p {params.workdir}
+            cp {input} {params.workdir}/{wildcards.mag}.fa.gz
+            cd {params.workdir}
+            if [ -n "{params.gapseq_medium}" ]; then
+                gapseq doall {wildcards.mag}.fa.gz {params.gapseq_medium}
+            else
+                gapseq doall {wildcards.mag}.fa.gz
+            fi
+            cp {wildcards.mag}.xml {params.output_xml}
+            """
 
-rule reconstruct:
-    input:
-        get_mag_input
-    output:
-        "intermediate_outputs/reconstructions/{mag}.xml"
-    params:
-        workdir=lambda wc: os.path.abspath(f"intermediate_outputs/reconstructions/.gapseq/{wc.mag}"),
-        output_xml=lambda wc: os.path.abspath(f"intermediate_outputs/reconstructions/{wc.mag}.xml"),
-        gapseq_medium=config.get("gapseq_medium", "")
-    resources:
-        mem_mb=20000
-    shell:
-        r"""
-        set -euo pipefail
-        mkdir -p {params.workdir}
-        cp {input} {params.workdir}/{wildcards.mag}.fa.gz
-        cd {params.workdir}
-        if [ -n "{params.gapseq_medium}" ]; then
-            gapseq doall {wildcards.mag}.fa.gz {params.gapseq_medium}
-        else
-            gapseq doall {wildcards.mag}.fa.gz
-        fi
-        cp {wildcards.mag}.xml {params.output_xml}
-        """
+elif config.get("reconstruction_tool") == "carve":
+    rule reconstruct:
+        input:
+            get_mag_input
+        output:
+            "intermediate_outputs/reconstructions/{mag}.xml"
+        resources:
+            mem_mb=20000
+        shell:
+            """
+            carve --dna {input} --solver cplex --gapfill M9 --output {output}
+            """
+else:
+    raise ValueError(f"Unsupported reconstruction tool: {config.get('reconstruction_tool')}")
 
 
 rule reconstruct_done:
