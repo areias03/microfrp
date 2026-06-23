@@ -41,7 +41,7 @@ def get_reconstructions(wildcards):
     checkpoints.download_mags.get(**wildcards)
     return expand("intermediate_outputs/reconstructions/{mag}.xml", mag=MAGS)
 
-if config.get("reconstruction_tool" == "gapseq"):
+if config.get("reconstruction_tool") == "gapseq":
     rule reconstruct:
         input:
             get_mag_input
