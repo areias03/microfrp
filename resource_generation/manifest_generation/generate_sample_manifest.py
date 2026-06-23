@@ -13,7 +13,7 @@ def get_abundances(sample: Sample):
     for f in sorted(
         [
             mag
-            for mag in glob.glob("results/mags/*.fa.gz")
+            for mag in glob.glob("external_data/mags/*.fa.gz")
             if mag.split("/")[-1].strip(".fa.gz")
             in sample.get_mags()["genome_id"].to_list()
         ]
@@ -43,9 +43,9 @@ def generate_manifest(sample: Sample):
                     genome["family"],
                     genome["genus"],
                     genome["species"],
-                    f"results/reconstructions/{genome['genome_id']}.xml",
+                    f"intermediate_outputs/reconstructions/{genome['genome_id']}.xml",
                     genome["derived_from_sample"],
-                    abun[f"results/mags/{genome['genome_id']}.fa.gz"],
+                    abun[f"external_data/mags/{genome['genome_id']}.fa.gz"],
                 ]
             )
         except KeyError:
