@@ -7,6 +7,7 @@ version = "0.1.0"
 
 [tasks]
 test = "snakemake -n"
+test-unit = "pytest"
 
 [dependencies]
 python = "==3.10"
@@ -17,6 +18,7 @@ cobra = ">=0.28.0,<1"
 carveme = ">=1.6.6,<2"
 gapseq = ">=1.4.0,<2"
 biopython = ">=1.87,<2"
+pytest = ">=8,<9"
 
 [pypi-dependencies]
 micom = ">=0.37.1, <0.38"

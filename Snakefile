@@ -9,7 +9,9 @@ import spirepy
 
 ITEM_ID = config["item"]
 
-CACHE_FILE = "external_data/.study_cache.json"
+# Namespace the cache per item so changing `item` never silently reuses
+# another study's samples/MAGs.
+CACHE_FILE = f"external_data/.study_cache.{ITEM_ID}.json"
 
 if os.path.exists(CACHE_FILE):
     with open(CACHE_FILE, 'r') as f:
@@ -22,9 +24,9 @@ else:
     study = spirepy.Study(ITEM_ID)
     SAMPLES = [s.id for s in study.get_samples()]
     MAGS = study.get_mags()["genome_id"].to_list()
-    os.makedirs("results", exist_ok=True)
+    os.makedirs("external_data", exist_ok=True)
     with open(CACHE_FILE, 'w') as f:
-        json.dump({'samples': SAMPLES, 'mags': MAGS}, f)
+        json.dump({'item': ITEM_ID, 'samples': SAMPLES, 'mags': MAGS}, f)
     print(f"Cached study data: {len(SAMPLES)} samples, {len(MAGS)} MAGs")
 
 print("Samples to process:", len(SAMPLES))
