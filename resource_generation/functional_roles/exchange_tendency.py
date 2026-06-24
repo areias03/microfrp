@@ -10,12 +10,13 @@ def exchange_tendency(
 ):
     """Calculate the exchange tendency classification for a taxon.
 
-    This parameter is defined as the sum of all import and export fluxes
-    multiplied by their respective metabolite's Metabolite Exchange Score (MES).
-    It represents the harmonic mean of all fluxes for a single taxon. A negative
-    value indicates that the taxon consumes more impactful metabolites than what
-    it produces. A positive value indicates higher rates of production of impactful
-    metabolites to the whole community.
+    This parameter is defined as the net weighted sum, over all of a taxon's
+    exchange reactions, of each flux multiplied by its metabolite's Metabolite
+    Exchange Score (MES). Imports and exports carry opposite flux signs, so the
+    score is a signed total rather than an average. A negative value indicates
+    that the taxon consumes more impactful metabolites than what it produces. A
+    positive value indicates higher rates of production of impactful metabolites
+    to the whole community.
 
     :param exchanges: The exchanges.
     :type results: :class:`polars.DataFrame`
