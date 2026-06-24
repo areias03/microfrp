@@ -38,7 +38,11 @@ def exchange_tendency(
 
 
     """
-    exchanges = exchanges.filter(exchanges["taxon"] != "medium").drop("")
+    exchanges = exchanges.filter(exchanges["taxon"] != "medium")
+    # Upstream `to_csv` may or may not write an unnamed index column; drop it
+    # only when present instead of assuming it exists.
+    if "" in exchanges.columns:
+        exchanges = exchanges.drop("")
     mes = mes.drop(
         col for col in mes.columns if col not in ["sample_id", "metabolite", "MES"]
     )
